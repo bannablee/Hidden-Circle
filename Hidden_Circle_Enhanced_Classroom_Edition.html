@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#101522" />
+<title>The Hidden Circle — Classroom Social Deduction</title>
+<style>
+:root{
+  --bg:#0b101a;--panel:#141d2b;--panel2:#1a2637;--line:#2a3a50;--text:#f3f6fb;--muted:#a8b6c8;
+  --gold:#f3c76a;--gold2:#ffe3a0;--red:#ff6f78;--blue:#72b7ff;--green:#6fdbad;--purple:#b69aff;
+  --shadow:0 18px 50px rgba(0,0,0,.26);--radius:22px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 12% -10%,rgba(89,117,164,.18),transparent 36%),radial-gradient(circle at 90% 4%,rgba(153,93,117,.11),transparent 30%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+button,input,select{font:inherit}button{cursor:pointer}
+.shell{max-width:1220px;margin:0 auto;padding:24px 22px 50px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:13px;min-width:0}
+.brand-mark{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#f4d28a,#c58a43);color:#25202a;font-size:24px;box-shadow:0 8px 25px rgba(227,175,91,.18)}
+.brand-name{font-size:14px;letter-spacing:.16em;font-weight:900;color:var(--gold2)}
+.brand-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px;white-space:nowrap;background:rgba(255,255,255,.025)}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(111,219,173,.6)}
+.hero{padding:34px 34px 30px;border:1px solid rgba(243,199,106,.21);border-radius:28px;background:linear-gradient(120deg,rgba(243,199,106,.10),transparent 43%),linear-gradient(145deg,#182335,#111a28 70%);box-shadow:var(--shadow);position:relative;overflow:hidden;margin-bottom:22px}
+.hero:after{content:"";position:absolute;width:280px;height:280px;border:1px solid rgba(243,199,106,.12);border-radius:50%;right:-80px;top:-130px;box-shadow:0 0 0 28px rgba(243,199,106,.025),0 0 0 58px rgba(243,199,106,.02)}
+.eyebrow{font-size:11px;font-weight:900;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+h1{font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.045em;margin:12px 0 12px;max-width:760px}
+.hero p{color:#c0cad8;line-height:1.65;max-width:680px;margin:0;font-size:15px}
+.layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.75fr);gap:20px;align-items:start}
+.panel{background:linear-gradient(180deg,rgba(25,37,54,.96),rgba(18,27,41,.98));border:1px solid var(--line);border-radius:var(--radius);padding:23px;box-shadow:var(--shadow)}
+.panel+.panel{margin-top:18px}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:17px}
+.panel h2{font-size:19px;margin:0;letter-spacing:-.02em}
+.panel h3{font-size:14px;margin:0 0 8px}
+.sub{font-size:13px;color:var(--muted);line-height:1.55;margin:6px 0 0}
+.field-label{display:block;font-size:12px;font-weight:800;color:#dbe4ef;margin-bottom:8px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mode{background:#101a28;border:1px solid var(--line);padding:14px;border-radius:16px;text-align:left;color:var(--text);transition:.16s;min-height:120px}
+.mode:hover{transform:translateY(-2px);border-color:#647b9c}
+.mode.selected{border-color:var(--gold);background:linear-gradient(145deg,rgba(243,199,106,.13),rgba(16,26,40,.95));box-shadow:inset 0 0 0 1px rgba(243,199,106,.15)}
+.mode-icon{font-size:22px;margin-bottom:9px}.mode strong{display:block;font-size:13px;margin-bottom:5px}.mode span{display:block;color:var(--muted);font-size:11px;line-height:1.45}
+.section-gap{margin-top:22px}
+.players-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.count{font-size:12px;color:var(--muted)}
+.player-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.player-row{display:flex;align-items:center;gap:8px;background:#101a28;border:1px solid #27364b;border-radius:13px;padding:8px 9px;min-width:0}
+.player-num{width:25px;height:25px;flex:0 0 25px;border-radius:9px;display:grid;place-items:center;background:#26364b;color:#c9d6e6;font-size:11px;font-weight:800}
+.player-row input{min-width:0;width:100%;background:transparent;border:0;outline:0;color:var(--text);font-size:13px;padding:4px 0}
+.icon-btn{width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:#8292a8;font-size:18px;display:grid;place-items:center}
+.icon-btn:hover{background:#293649;color:#fff}
+.add-row{display:flex;gap:9px;margin-top:11px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);border-radius:12px;padding:11px 15px;background:#1b2a3e;color:var(--text);font-weight:800;font-size:13px;transition:.16s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none}
+.btn.primary{background:linear-gradient(135deg,#f2d18b,#dca74d);border-color:#f5d58d;color:#29232a;box-shadow:0 8px 20px rgba(214,164,76,.15)}
+.btn.danger{background:rgba(255,111,120,.1);border-color:rgba(255,111,120,.3);color:#ffabb0}
+.btn.ghost{background:transparent}.btn.small{padding:8px 11px;font-size:12px;border-radius:10px}
+.full{width:100%}
+.control-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.07)}.control-row:last-child{border:0;padding-bottom:0}.control-row:first-child{padding-top:0}
+.control-row strong{font-size:13px}.control-row small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
+select{border:1px solid var(--line);background:#101a28;color:var(--text);padding:9px 10px;border-radius:10px;outline:none;max-width:145px}
+.switch{appearance:none;width:43px;height:24px;border-radius:99px;background:#34445a;position:relative;cursor:pointer;transition:.2s;flex:0 0 43px}.switch:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;background:#dce4ee;transition:.2s}.switch:checked{background:#bd914c}.switch:checked:before{transform:translateX(19px);background:#fff4d6}
+.role-preview{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:13px}.role-chip{background:#101a28;border:1px solid #27364b;padding:10px;border-radius:12px}.role-chip strong{display:block;font-size:17px;color:var(--gold2)}.role-chip span{font-size:11px;color:var(--muted)}
+.info-box{background:rgba(114,183,255,.08);border:1px solid rgba(114,183,255,.2);border-radius:14px;padding:13px;color:#c6d8ed;font-size:12px;line-height:1.55}
+.rules{display:grid;gap:11px}.rule{display:flex;gap:11px;align-items:flex-start}.rule-num{width:25px;height:25px;display:grid;place-items:center;border-radius:8px;background:#2a3b50;color:var(--gold2);font-size:11px;font-weight:900;flex:0 0 25px}.rule p{margin:1px 0 0;color:#c1ccda;font-size:12px;line-height:1.5}
+.footer-note{text-align:center;color:#77879d;font-size:11px;margin-top:20px}
+/* Role pass */
+.private-wrap{max-width:760px;margin:55px auto 0}.private-alert{border:1px solid rgba(255,111,120,.35);background:rgba(255,111,120,.09);color:#ffb8bc;border-radius:13px;padding:12px 15px;font-size:12px;font-weight:800;letter-spacing:.04em;margin-bottom:15px;text-align:center}
+.private-card{background:linear-gradient(145deg,#1b293d,#111a29);border:1px solid #3c4e67;border-radius:26px;padding:30px;text-align:center;box-shadow:var(--shadow)}.private-card h2{font-size:26px;margin:8px 0}.private-card p{color:var(--muted);line-height:1.55;font-size:14px}.pass-name{font-size:34px;font-weight:900;color:var(--gold2);margin:18px 0 22px;letter-spacing:-.04em}
+.role-display{display:none;margin:22px auto 0;padding:24px;border:1px solid rgba(243,199,106,.38);background:rgba(243,199,106,.08);border-radius:20px;max-width:420px}.role-display.show{display:block}.role-emoji{font-size:38px}.role-display h3{font-size:25px;margin:7px 0;color:var(--gold2)}.role-display p{margin:0;color:#d2dce8}.ally-list{color:var(--gold2)!important;font-weight:800;margin-top:12px!important}
+/* Game view */
+.game-top{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:17px}.stat{padding:13px 14px;background:#111b2a;border:1px solid var(--line);border-radius:14px}.stat span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900}.stat strong{display:block;font-size:21px;margin-top:4px}.phase-panel{min-height:430px;position:relative;overflow:hidden}.phase-kicker{color:var(--gold);text-transform:uppercase;letter-spacing:.18em;font-size:10px;font-weight:900}.phase-title{font-size:clamp(27px,4vw,39px);letter-spacing:-.04em;margin:9px 0}.phase-desc{font-size:14px;color:#c0ccda;line-height:1.65;max-width:700px}.phase-banner{padding:21px;border-radius:17px;background:linear-gradient(110deg,rgba(243,199,106,.13),rgba(243,199,106,.025));border:1px solid rgba(243,199,106,.19);margin:18px 0}.phase-banner strong{color:var(--gold2)}
+.player-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 0}.target-card{padding:12px 10px;border:1px solid #30425b;border-radius:13px;background:#111b29;color:var(--text);text-align:left;display:flex;align-items:center;gap:9px;min-width:0}.target-card:hover{border-color:#849bb9}.target-card.selected{border-color:var(--gold);background:rgba(243,199,106,.11);box-shadow:inset 0 0 0 1px rgba(243,199,106,.16)}.target-card:disabled{opacity:.35;cursor:not-allowed}.avatar{width:29px;height:29px;display:grid;place-items:center;border-radius:10px;background:#2a3c53;color:#e0e8f3;font-size:12px;font-weight:900;flex:0 0 29px}.target-card strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.target-card small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.action-bar{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}.timer-box{margin:20px 0;padding:20px;background:#101a28;border:1px solid var(--line);border-radius:18px;display:flex;align-items:center;justify-content:space-between;gap:18px}.timer-number{font-size:44px;font-weight:900;letter-spacing:-.06em;font-variant-numeric:tabular-nums;color:var(--gold2)}.timer-track{height:7px;background:#2b394d;border-radius:99px;overflow:hidden;margin-top:10px}.timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#eab85f,#f5d995);transition:width .5s linear}.timer-meta{min-width:0;flex:1}.timer-meta p{font-size:12px;color:var(--muted);margin:0}.timer-controls{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.roster{display:grid;gap:8px}.roster-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;background:#101a28;border:1px solid #26364a;border-radius:11px}.roster-row span{font-size:12px}.status{font-size:10px!important;font-weight:900;letter-spacing:.04em;color:var(--green)}.status.out{color:var(--red)}
+.vote-box{background:#101a28;border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:17px}.vote-progress{font-size:11px;color:var(--muted);margin-bottom:10px}.result-box{text-align:center;border:1px solid rgba(243,199,106,.25);background:linear-gradient(145deg,rgba(243,199,106,.1),rgba(17,26,41,.95));padding:25px;border-radius:19px;margin:20px 0}.result-box .big-icon{font-size:42px}.result-box h3{font-size:25px;margin:8px 0}.result-box p{color:#c0ccda;font-size:13px;line-height:1.55;margin:0}
+.log-list{display:grid;gap:8px;max-height:270px;overflow:auto}.log-item{border-left:2px solid #526a86;padding:5px 0 5px 10px;color:#aebdce;font-size:11px;line-height:1.45}.log-item strong{color:#e7edf5}
+.win-title{font-size:clamp(36px,6vw,60px);letter-spacing:-.05em;margin:10px 0;color:var(--gold2)}
+.hidden{display:none!important}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.game-top{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.shell{padding:15px 12px 35px}.hero{padding:25px 21px}.panel{padding:18px}.modes{grid-template-columns:1fr}.mode{min-height:0;display:flex;gap:12px;align-items:center}.mode-icon{margin:0;font-size:24px}.player-list{grid-template-columns:1fr}.player-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.timer-box{align-items:flex-start;flex-direction:column}.timer-controls{justify-content:flex-start}.private-wrap{margin:22px auto}.private-card{padding:23px 16px}.topbar{align-items:flex-start}.pill{font-size:10px}.phase-panel{min-height:0}}
+@media print{body{background:#fff;color:#111}.shell{max-width:none}.topbar,.hero,.footer-note{display:none}.panel{box-shadow:none;background:#fff;color:#111;border:1px solid #aaa}}
+
+/* ------------------------------------------------------------------
+   THE HIDDEN CIRCLE — UI / UX REFRESH
+   Presentation-only layer. Game rules and state transitions unchanged.
+------------------------------------------------------------------- */
+:root{
+  --bg:#080d16;--panel:#111b2a;--panel2:#172438;--line:#293b53;--text:#f5f7fb;--muted:#aab8ca;
+  --gold:#e9bc69;--gold2:#ffe5ad;--red:#ff7e86;--blue:#7dbdff;--green:#75ddb1;
+  --shadow:0 22px 65px rgba(0,0,0,.30);--radius:20px;
+}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{background:radial-gradient(ellipse at 50% -18%,rgba(73,105,155,.20),transparent 48%),radial-gradient(circle at 100% 30%,rgba(116,77,112,.08),transparent 27%),#080d16;letter-spacing:.002em}
+button,input,select{font-family:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid rgba(233,188,105,.88);outline-offset:3px}
+.skip-link{position:fixed;top:10px;left:10px;z-index:9999;padding:10px 14px;border-radius:10px;background:#ffe5ad;color:#241d12;font-weight:900;transform:translateY(-160%);transition:transform .18s}
+.skip-link:focus{transform:translateY(0)}
+.shell{max-width:1360px;padding:22px 28px 48px}
+.topbar{padding:4px 2px 18px;border-bottom:1px solid rgba(255,255,255,.075);margin-bottom:24px}
+.brand{gap:14px}
+.brand-mark{width:48px;height:48px;border-radius:16px;font-size:25px;background:linear-gradient(145deg,#ffe3a0,#c58a43);box-shadow:0 8px 28px rgba(227,175,91,.20),inset 0 1px 0 rgba(255,255,255,.55)}
+.brand-name{font-size:13px;letter-spacing:.19em;color:#ffe3a0}
+.brand-sub{font-size:12px;color:#9cacc0;letter-spacing:.015em}
+.header-badges{display:flex;align-items:center;gap:8px}
+.pill{padding:8px 12px;background:rgba(255,255,255,.035);border-color:rgba(167,187,214,.15);font-weight:800;font-size:10px;letter-spacing:.08em}
+.hero{display:flex;align-items:center;justify-content:space-between;gap:28px;min-height:236px;padding:34px 42px;border:1px solid rgba(233,188,105,.19);border-radius:26px;background:linear-gradient(105deg,rgba(233,188,105,.11),transparent 48%),linear-gradient(135deg,#17263a 0%,#101a29 72%);box-shadow:0 24px 65px rgba(0,0,0,.25);margin-bottom:18px}
+.hero-copy{position:relative;z-index:1;max-width:760px}
+.hero .eyebrow,.game-heading .eyebrow{color:#eac477;font-size:10px;letter-spacing:.22em}
+.hero h1{font-size:clamp(38px,5.4vw,62px);line-height:.99;letter-spacing:-.055em;margin:13px 0 15px}
+.hero p{font-size:14px;line-height:1.72;color:#c1ccda;max-width:670px}
+.hero-tags{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}
+.hero-tags span{border:1px solid rgba(214,227,242,.12);background:rgba(8,14,24,.28);border-radius:999px;padding:7px 10px;color:#c4d0df;font-size:10px;font-weight:800;letter-spacing:.025em}
+.hero-emblem{width:180px;height:180px;flex:0 0 180px;position:relative;display:grid;place-items:center;margin-right:25px;opacity:.92}
+.emblem-ring{position:absolute;border:1px solid rgba(233,188,105,.24);border-radius:50%;transform:rotate(-20deg)}
+.ring-one{inset:10px;box-shadow:0 0 0 13px rgba(233,188,105,.025),0 0 0 28px rgba(233,188,105,.018)}
+.ring-two{inset:30px;border-style:dashed;transform:rotate(32deg)}
+.emblem-core{width:75px;height:75px;border:1px solid rgba(255,227,160,.55);border-radius:25px;display:grid;place-items:center;color:#ffe3a0;font-size:40px;background:radial-gradient(circle,rgba(233,188,105,.19),rgba(233,188,105,.025));box-shadow:0 0 45px rgba(233,188,105,.12)}
+.emblem-star{position:absolute;color:#ffe3a0}.star-a{top:20px;right:20px;font-size:19px}.star-b{bottom:18px;left:15px;font-size:15px}
+.setup-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 18px}
+.setup-step{display:flex;align-items:center;gap:11px;padding:12px 15px;background:rgba(17,27,42,.74);border:1px solid rgba(159,181,211,.12);border-radius:14px}
+.setup-step>span{width:29px;height:29px;display:grid;place-items:center;flex:0 0 29px;border-radius:9px;background:#263950;color:#eac477;font-size:10px;font-weight:900}
+.setup-step strong{display:block;font-size:11px;color:#eff3f8}.setup-step small{display:block;color:#91a2b7;font-size:10px;margin-top:2px}
+.setup-step.active{border-color:rgba(233,188,105,.3);background:linear-gradient(115deg,rgba(233,188,105,.09),rgba(17,27,42,.82))}
+.setup-step.active>span{background:linear-gradient(140deg,#f3d28c,#c89149);color:#211c16}
+.layout{grid-template-columns:minmax(0,1.55fr) minmax(300px,.78fr);gap:18px}
+.setup-layout>div> .panel{position:relative}
+.setup-layout aside{position:sticky;top:16px}
+.panel{background:linear-gradient(180deg,rgba(19,31,48,.98),rgba(14,23,36,.99));border:1px solid rgba(155,179,211,.15);border-radius:20px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,.20)}
+.panel+.panel{margin-top:14px}
+.panel-head{margin-bottom:19px}
+.panel h2{font-size:18px;letter-spacing:-.025em}
+.sub{font-size:12px;color:#9eadc0;line-height:1.62}
+.modes{gap:10px}
+.mode{position:relative;min-height:126px;padding:16px;background:linear-gradient(145deg,#121f30,#0f1927);border:1px solid rgba(151,176,210,.14);border-radius:15px}
+.mode:before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.035),transparent 52%);opacity:0;transition:opacity .18s}
+.mode:hover{transform:translateY(-2px);border-color:rgba(180,199,224,.42)}.mode:hover:before{opacity:1}
+.mode.selected{border-color:rgba(233,188,105,.76);background:linear-gradient(145deg,rgba(233,188,105,.13),#101b2a 75%);box-shadow:0 0 0 1px rgba(233,188,105,.12),0 10px 25px rgba(0,0,0,.16)}
+.mode.selected:after{content:"SELECTED";position:absolute;top:10px;right:11px;font-size:8px;letter-spacing:.13em;font-weight:900;color:#ffdf9d}
+.mode-icon{width:35px;height:35px;display:grid;place-items:center;margin:0 0 11px;border-radius:11px;background:rgba(233,188,105,.10);font-size:19px}
+.mode strong{font-size:12px;margin-bottom:6px}.mode span{font-size:10px;line-height:1.55;color:#9fadc0}
+.section-gap{margin-top:25px}
+.players-head{align-items:flex-end;padding-top:4px}
+.count{border:1px solid rgba(233,188,105,.25);background:rgba(233,188,105,.075);border-radius:999px;padding:7px 10px;color:#f5d99f;font-size:10px;font-weight:900;white-space:nowrap}
+.player-list{gap:8px}
+.player-row{min-height:47px;background:rgba(8,15,25,.43);border-color:rgba(145,170,203,.15);border-radius:12px;padding:7px 9px;transition:border-color .15s,background .15s}
+.player-row:focus-within{border-color:rgba(233,188,105,.65);background:rgba(233,188,105,.055)}
+.player-num{width:28px;height:28px;flex-basis:28px;background:#263950;color:#e3c17e;border-radius:9px;font-size:10px}
+.player-row input{font-size:12px;color:#f0f4fa}.player-row input::placeholder{color:#718299}
+.icon-btn{flex:0 0 28px}.icon-btn:disabled{opacity:.2}
+.add-row{gap:8px;margin-top:12px}
+.btn{min-height:40px;padding:10px 15px;border-radius:11px;background:linear-gradient(180deg,#1b2d43,#17263a);border-color:rgba(161,184,215,.17);font-size:12px;letter-spacing:.005em;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.btn:hover{filter:brightness(1.13);transform:translateY(-1px);border-color:rgba(193,211,235,.35)}
+.btn.primary{background:linear-gradient(135deg,#f3d99f,#d4a354);border-color:#f4d99e;color:#241d12;box-shadow:0 9px 24px rgba(212,163,84,.18);font-weight:900}
+.btn.primary:hover{filter:brightness(1.05);box-shadow:0 12px 28px rgba(212,163,84,.24)}
+.btn.ghost{background:rgba(255,255,255,.025);box-shadow:none}
+.btn.small{min-height:34px;padding:8px 11px;font-size:10px}
+.btn:disabled{opacity:.4;filter:grayscale(.15)}
+.control-row{padding:14px 0;border-color:rgba(255,255,255,.07)}
+.control-row strong{font-size:12px;color:#edf2f8}.control-row small{font-size:10px;color:#95a5b9;line-height:1.5}
+select{background:#0e1927;border-color:rgba(153,178,211,.22);padding:10px 12px;font-size:11px;max-width:158px}
+.switch{width:45px;height:25px;flex-basis:45px}.switch:checked{background:#bd914c}
+.role-preview{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:15px}
+.role-chip{padding:12px 9px;background:rgba(8,15,25,.43);border-color:rgba(145,170,203,.14);text-align:center}
+.role-chip strong{font-size:20px;color:#f6dba1}.role-chip span{font-size:9px;line-height:1.4;display:block;margin-top:2px}
+.start-summary{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;padding:13px 15px;background:linear-gradient(100deg,rgba(233,188,105,.09),rgba(233,188,105,.025));border:1px solid rgba(233,188,105,.2);border-radius:13px}
+.start-summary>div{display:grid;gap:3px}.summary-label{font-size:8px;letter-spacing:.16em;color:#e8c77f;font-weight:900}.start-summary strong{font-size:12px;color:#f3f5f8}.start-summary small{font-size:10px;color:#9dadc0}.summary-check{width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:rgba(117,221,177,.12);color:#83e5bc;font-size:14px;font-weight:900}
+.start-button{min-height:48px;font-size:13px}.start-footnote{font-size:10px;text-align:center;color:#8798ad;margin:9px 0 0}
+.rules{gap:15px}.rule{gap:12px}.rule-num{width:28px;height:28px;flex-basis:28px;border-radius:9px;background:#273950;color:#f0d18f}.rule p{font-size:11px;line-height:1.58;color:#aebdce}.rule p strong{color:#f1f4f8}
+.info-box{background:rgba(111,174,237,.07);border-color:rgba(111,174,237,.17);padding:15px;font-size:11px;line-height:1.65;color:#b9cce2}
+.footer-note{margin-top:24px;color:#667991;font-size:10px}
+/* Private role pass */
+.private-wrap{max-width:700px;margin:35px auto 0}
+.private-alert{padding:12px 15px;border-radius:12px;background:rgba(255,111,120,.075);border:1px solid rgba(255,126,134,.27);color:#ffb5ba;font-size:10px;letter-spacing:.1em}
+.role-pass-progress{margin:0 0 13px;padding:13px 16px;border:1px solid rgba(155,179,211,.14);border-radius:13px;background:rgba(17,27,42,.85)}
+.progress-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:#9eafc3;font-size:9px;font-weight:900;letter-spacing:.13em}
+.progress-caption strong{font-size:11px;color:#f4d99f;letter-spacing:0}.progress-caption i{font-style:normal;color:#8092a8}
+.progress-track{height:5px;border-radius:99px;background:#283a51;overflow:hidden}.progress-value{height:100%;border-radius:99px;background:linear-gradient(90deg,#c58b43,#ffe3a0);transition:width .25s}
+.private-card{padding:34px;background:linear-gradient(145deg,#18283d,#101a29);border:1px solid rgba(171,194,224,.2);border-radius:23px;box-shadow:0 25px 70px rgba(0,0,0,.3)}
+.private-card h2{font-size:25px}.private-card p{font-size:13px;color:#aebed0}.pass-name{font-size:clamp(30px,6vw,42px);color:#ffe3a0}
+.role-display{background:rgba(233,188,105,.07);border-color:rgba(233,188,105,.34);border-radius:17px}.role-display h3{letter-spacing:.035em}
+/* In-game overview */
+.game-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:3px 0 15px;padding:2px 1px}
+.game-heading-title{font-size:24px;letter-spacing:-.04em;margin:6px 0 2px;color:#f4f6fa}
+.game-heading-sub{margin:0;color:#91a2b8;font-size:11px}
+.display-tools{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.tool-btn{background:rgba(255,255,255,.035);font-size:9px;color:#becbdd}
+.game-top{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:11px}
+.stat{padding:12px 15px;background:linear-gradient(145deg,#142237,#101a29);border-color:rgba(151,177,212,.14);border-radius:13px}
+.stat span{font-size:8px;letter-spacing:.15em;color:#91a4bb}
+.stat strong{font-size:22px;color:#f2d89f}
+.stat strong i{font-style:normal;color:#8394a9;font-size:13px}
+.stat .stat-mode{font-size:12px;color:#e8edf5;margin-top:7px}
+.phase-progress-wrap{padding:15px 18px 13px;margin-bottom:13px;background:rgba(17,27,42,.77);border:1px solid rgba(151,177,212,.13);border-radius:15px}
+.phase-progress-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.phase-progress-heading>div{display:grid;gap:3px}.phase-progress-kicker{color:#9aabc0;font-size:8px;font-weight:900;letter-spacing:.16em}.phase-progress-heading strong{font-size:11px;color:#edf2f8}
+.phase-progress-current{border:1px solid rgba(233,188,105,.25);background:rgba(233,188,105,.08);color:#f5d99f;border-radius:99px;padding:6px 10px;font-size:9px;font-weight:900}
+.phase-progress-track{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.phase-step{display:flex;align-items:center;gap:7px;min-width:0;color:#72859c;font-size:9px;font-weight:800}
+.phase-step-dot{width:21px;height:21px;flex:0 0 21px;border-radius:50%;display:grid;place-items:center;background:#26374c;color:#8ea0b5;font-size:9px}
+.phase-step.current{color:#f6d99d}.phase-step.current .phase-step-dot{background:linear-gradient(140deg,#f3d99f,#d0a052);color:#241d12;box-shadow:0 0 0 4px rgba(233,188,105,.09)}
+.phase-step.done{color:#8fd9b8}.phase-step.done .phase-step-dot{background:rgba(117,221,177,.16);color:#91e8c2}
+.game-layout{grid-template-columns:minmax(0,1.6fr) minmax(285px,.75fr);gap:14px;align-items:start}
+.phase-panel{min-height:490px;padding:29px 30px;background:linear-gradient(180deg,rgba(19,31,48,.99),rgba(13,22,35,.99));border-color:rgba(155,179,211,.17)}
+.phase-content{max-width:900px;margin:0 auto}
+.phase-kicker{display:inline-flex;align-items:center;gap:7px;color:#e9c477;font-size:9px;letter-spacing:.17em;padding:6px 9px;background:rgba(233,188,105,.07);border:1px solid rgba(233,188,105,.13);border-radius:7px}
+.phase-title{font-size:clamp(28px,3.4vw,42px);line-height:1.06;letter-spacing:-.05em;margin:15px 0 11px;color:#f4f6fa}
+.phase-desc{font-size:13px;line-height:1.75;color:#acbbcd;max-width:760px}
+.phase-banner{padding:16px 18px;margin:18px 0;border-radius:13px;border:1px solid rgba(233,188,105,.17);background:linear-gradient(110deg,rgba(233,188,105,.09),rgba(233,188,105,.025));color:#bfcbd9;font-size:12px;line-height:1.65}
+.phase-banner strong{color:#f4d99e}
+.player-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 0}
+.target-card{padding:11px 12px;min-height:58px;border-color:rgba(147,174,210,.18);background:linear-gradient(145deg,#142237,#101a29);border-radius:12px;transition:transform .14s,border-color .14s,background .14s}
+.target-card:hover{transform:translateY(-1px);border-color:rgba(192,210,236,.55)}
+.target-card.selected{border-color:#e9bc69;background:rgba(233,188,105,.12);box-shadow:0 0 0 1px rgba(233,188,105,.10)}
+.avatar{width:31px;height:31px;flex-basis:31px;border-radius:10px;background:#2a405b;color:#f2d69a}
+.target-card strong{font-size:11px;color:#f0f4fa}.target-card small{font-size:9px;color:#94a5ba}
+.action-bar{margin-top:22px;gap:9px}.action-bar .btn.primary{min-width:190px}
+.timer-box{padding:19px 20px;background:linear-gradient(145deg,#111f31,#0d1725);border-color:rgba(151,177,212,.17);border-radius:16px}
+.timer-number{font-size:clamp(44px,6vw,58px);color:#ffe0a0;line-height:1.05;margin:7px 0}
+.timer-meta p{font-size:10px;color:#9eafc3}.timer-track{height:8px;background:#283950}.timer-fill{background:linear-gradient(90deg,#d29c52,#ffe3a0)}
+.timer-controls .btn{min-width:82px}
+.result-box{padding:27px;border-radius:17px;border-color:rgba(233,188,105,.21);background:linear-gradient(145deg,rgba(233,188,105,.085),rgba(17,26,41,.95))}
+.result-box h3{font-size:24px;letter-spacing:-.025em;color:#f7f2e8}.result-box p{font-size:12px;line-height:1.65}
+.win-title{font-size:clamp(38px,6vw,66px);line-height:1.02;color:#ffe2a2}
+/* Sidebar player board */
+.game-sidebar{position:sticky;top:12px;min-width:0}
+.roster-panel{padding:19px 18px}
+.roster-panel .panel-head{align-items:center;margin-bottom:13px}
+.roster-panel .panel-head h2{font-size:14px}.roster-panel .sub{font-size:10px}
+.active-pill{font-size:8px;padding:6px 8px;color:#91e2bd}.active-pill .dot{width:6px;height:6px}
+.roster{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.roster-row{padding:7px 8px;border-radius:10px;background:rgba(8,15,25,.36);border-color:rgba(145,170,203,.11);min-width:0}
+.roster-person{display:flex;align-items:center;gap:7px;min-width:0}
+.roster-avatar{width:23px;height:23px;display:grid;place-items:center;flex:0 0 23px;border-radius:8px;background:#293b53;color:#dce7f5;font-size:9px;font-weight:900}
+.roster-name{font-size:10px!important;color:#d5deea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roster-row.is-out{opacity:.47}.roster-row.is-out .roster-avatar{filter:grayscale(1)}
+.status{display:flex;align-items:center;gap:4px;font-size:7px!important;white-space:nowrap;color:#8be2bc;letter-spacing:.06em}
+.status i{width:5px;height:5px;border-radius:50%;background:currentColor}
+.status.out{color:#f08f97}
+.roster-foot{display:flex;align-items:center;gap:6px;margin-top:11px;color:#7f91a8;font-size:8px}
+.legend-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-left:5px}.legend-dot.active{background:#75ddb1}.legend-dot.out{background:#ff7e86}
+.log-panel{padding:0;overflow:hidden}
+.log-panel summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:17px 18px}
+.log-panel summary::-webkit-details-marker{display:none}.log-panel summary>span:first-child{display:grid;gap:3px}.log-panel summary strong{font-size:12px;color:#edf2f8}.log-panel summary small{font-size:9px;color:#8fa1b7}
+.log-panel summary:after{content:"＋";color:#e9c477;font-size:15px;font-weight:700}.log-panel[open] summary:after{content:"−"}
+.log-count{font-size:8px;color:#a9bacd;border:1px solid rgba(151,177,212,.16);border-radius:99px;padding:5px 8px}
+.log-list{max-height:235px;padding:0 18px 17px;gap:10px}
+.log-item{font-size:9px;line-height:1.55;color:#a9b8ca;border-left-color:#657f9e}
+.log-item strong{color:#e5d3a9}
+.leave-button{margin-top:10px;border-color:rgba(255,126,134,.17);color:#d69da3;font-size:10px}
+.leave-button:hover{border-color:rgba(255,126,134,.4);background:rgba(255,126,134,.06)}
+.sidebar-hint{font-size:9px;line-height:1.55;color:#73869e;margin:9px 4px 0}
+/* Private / selected / disabled states */
+.private-wrap .action-bar{justify-content:center}
+.private-wrap .btn.primary{min-height:46px}
+.private-alert + .private-card{margin-top:14px}
+.hidden{display:none!important}
+/* Focus view and large-screen readability toggles */
+body.focus-mode .game-layout{grid-template-columns:minmax(0,1fr)}
+body.focus-mode .game-sidebar{display:none}
+body.focus-mode .phase-panel{min-height:580px}
+body.large-type .phase-desc{font-size:15px}
+body.large-type .phase-banner{font-size:14px}
+body.large-type .target-card strong{font-size:13px}
+body.large-type .target-card small{font-size:11px}
+body.large-type .btn{font-size:14px}
+body.large-type .roster-name{font-size:12px!important}
+/* Responsive */
+@media(max-width:1000px){
+  .shell{padding-left:20px;padding-right:20px}
+  .layout,.game-layout{grid-template-columns:minmax(0,1.3fr) minmax(260px,.8fr)}
+  .hero-emblem{margin-right:0;width:145px;height:145px;flex-basis:145px}
+  .ring-one{inset:7px}.ring-two{inset:25px}
+  .role-preview{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .roster{grid-template-columns:1fr}
+}
+@media(max-width:820px){
+  .layout,.game-layout{grid-template-columns:1fr}
+  .setup-layout aside,.game-sidebar{position:static}
+  .game-sidebar{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .game-sidebar .panel{margin:0}.game-sidebar .leave-button,.game-sidebar .sidebar-hint{grid-column:1/-1}
+  .roster{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .phase-panel{min-height:0}
+}
+@media(max-width:600px){
+  .shell{padding:13px 12px 30px}
+  .topbar{align-items:flex-start;margin-bottom:15px}.header-badges{gap:5px;flex-wrap:wrap;justify-content:flex-end}.header-badges .pill{font-size:8px;padding:7px 8px}
+  .brand-mark{width:40px;height:40px}.brand-name{font-size:11px}.brand-sub{font-size:10px}
+  .hero{min-height:0;padding:25px 22px;border-radius:19px;margin-bottom:12px}.hero h1{font-size:36px}.hero p{font-size:12px}.hero-tags{margin-top:16px;gap:6px}.hero-tags span{font-size:8px;padding:6px 8px}.hero-emblem{display:none}
+  .setup-steps{gap:6px}.setup-step{padding:9px 8px;gap:7px}.setup-step>span{width:24px;height:24px;flex-basis:24px;font-size:8px}.setup-step strong{font-size:9px}.setup-step small{font-size:8px}
+  .panel{padding:17px;border-radius:16px}.panel h2{font-size:16px}.sub{font-size:11px}
+  .modes{grid-template-columns:1fr}.mode{min-height:0;padding:12px;display:flex;align-items:center;gap:11px}.mode-icon{margin:0;width:33px;height:33px;flex:0 0 33px}.mode strong{font-size:11px}.mode span{font-size:9px}.mode.selected:after{top:7px;right:8px;font-size:7px}
+  .players-head{align-items:flex-start;flex-direction:column;gap:7px}.player-list{grid-template-columns:1fr}.add-row .btn{flex:1}
+  .control-row{gap:8px}.control-row strong{font-size:11px}.control-row small{font-size:9px}
+  .role-preview{grid-template-columns:repeat(2,1fr)}.start-summary{padding:11px 12px}.start-button{min-height:46px}
+  .game-heading{align-items:flex-start;flex-direction:column;gap:11px}.game-heading-title{font-size:21px}.display-tools{justify-content:flex-start}.game-top{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.stat{padding:10px 12px}.stat strong{font-size:19px}
+  .phase-progress-wrap{padding:12px}.phase-progress-track{gap:3px}.phase-step{flex-direction:column;gap:4px;text-align:center;font-size:8px}.phase-step-dot{width:22px;height:22px;flex-basis:22px}
+  .phase-panel{padding:20px 16px}.phase-title{font-size:29px}.phase-desc{font-size:12px}.phase-banner{padding:13px;font-size:11px}.player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.target-card{padding:9px 8px;min-height:52px}.target-card strong{font-size:10px}.target-card small{font-size:8px}
+  .timer-box{padding:15px}.timer-number{font-size:43px}.timer-controls{justify-content:flex-start}.action-bar .btn.primary{width:100%}
+  .game-sidebar{grid-template-columns:1fr}.game-sidebar .leave-button,.game-sidebar .sidebar-hint{grid-column:auto}.roster{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .private-wrap{margin:18px auto}.private-card{padding:25px 16px}.pass-name{font-size:31px}.role-display{padding:19px 14px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+@media print{.display-tools,.game-sidebar,.setup-steps{display:none!important}.phase-panel{box-shadow:none}}
+
+
+/* ── HIDDEN CIRCLE EXPERIENCE UPDATE ─────────────────────────────────────── */
+:root{--accent:#e9c477;--accent-strong:#f4d99e;--glass:rgba(17,27,42,.72)}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(ellipse at 10% -15%,rgba(91,126,176,.20),transparent 43%),radial-gradient(ellipse at 98% 3%,rgba(187,139,80,.11),transparent 34%),#090f19}
+.shell{max-width:1360px;padding-top:18px}
+.topbar{position:relative;padding:5px 3px 17px;border-bottom:1px solid rgba(255,255,255,.09);margin-bottom:12px}
+.brand-mark{border-radius:14px;box-shadow:0 9px 28px rgba(225,177,98,.23)}
+.utility-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;margin:0 0 20px;border:1px solid rgba(151,177,212,.15);border-radius:16px;background:linear-gradient(110deg,rgba(23,36,54,.94),rgba(14,23,37,.92));box-shadow:0 9px 30px rgba(0,0,0,.13);backdrop-filter:blur(16px)}
+.utility-left{display:flex;align-items:center;gap:13px;flex:0 0 auto}.utility-label{font-size:9px;letter-spacing:.17em;font-weight:950;color:#94a7bd}.save-status{display:inline-flex;align-items:center;gap:6px;color:#8699af;font-size:10px;white-space:nowrap}.save-status i{width:6px;height:6px;border-radius:50%;background:#71859d}.save-status.is-saved{color:#9bdfc0}.save-status.is-saved i{background:#72d9ad;box-shadow:0 0 10px rgba(114,217,173,.55)}.save-status.save-warning{color:#ffd18b}
+.utility-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}.utility-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 10px;border-radius:10px;border:1px solid transparent;background:transparent;color:#b6c4d5;font-size:10px;font-weight:800;transition:background .16s,border-color .16s,color .16s;white-space:nowrap}.utility-btn:hover,.utility-btn[aria-pressed="true"]{background:rgba(233,196,119,.09);border-color:rgba(233,196,119,.23);color:#f4d99e}.utility-symbol{font-size:13px;color:#e9c477}.utility-btn:focus-visible,.btn:focus-visible,.mode:focus-visible,.target-card:focus-visible,.roster-filter:focus-visible{outline:2px solid #f4d99e;outline-offset:3px}
+#app{animation:appEnter .24s ease both}@keyframes appEnter{from{opacity:.65;transform:translateY(4px)}to{opacity:1;transform:none}}
+.hero{padding:40px 42px 36px;border-radius:26px;background:linear-gradient(118deg,rgba(233,196,119,.12),transparent 43%),linear-gradient(145deg,#19273b,#111b2b 70%);border-color:rgba(233,196,119,.23)}
+.hero h1{max-width:810px;line-height:1.01}.hero p{font-size:15px;max-width:700px}
+.panel{border-color:rgba(151,177,212,.16);background:linear-gradient(180deg,rgba(25,38,57,.98),rgba(15,24,38,.99));box-shadow:0 15px 42px rgba(0,0,0,.18)}
+.panel-head{align-items:center}.panel h2{letter-spacing:-.025em}.sub{color:#a8b7ca}
+.mode{border-color:rgba(151,177,212,.18);background:linear-gradient(145deg,#142238,#101a29)}.mode:hover{border-color:rgba(233,196,119,.6)}
+.mode.selected{border-color:#e9c477;background:linear-gradient(145deg,rgba(233,196,119,.14),rgba(16,26,40,.96))}
+.player-row{border-color:rgba(151,177,212,.14);background:rgba(9,17,29,.52)}.player-row:focus-within{border-color:rgba(233,196,119,.55);box-shadow:0 0 0 3px rgba(233,196,119,.07)}
+.btn{min-height:40px;border-radius:11px}.btn.primary{background:linear-gradient(135deg,#f5dda7,#d8a34e);box-shadow:0 8px 20px rgba(214,164,76,.18)}
+.control-row{border-color:rgba(255,255,255,.065)}.role-chip{border-color:rgba(151,177,212,.15)}
+.phase-panel{border-color:rgba(151,177,212,.17);box-shadow:0 18px 54px rgba(0,0,0,.2)}
+.phase-progress-wrap{background:linear-gradient(110deg,rgba(19,31,49,.94),rgba(13,23,36,.84));border-color:rgba(151,177,212,.16)}
+.phase-step{font-size:10px}.phase-step-dot{width:23px;height:23px;flex-basis:23px}
+.game-sidebar{display:grid;gap:12px}.game-sidebar .panel{margin:0}.roster-panel{background:linear-gradient(160deg,#17263a,#111b2a)}
+.roster-tools{display:grid;gap:9px;margin-bottom:11px}.roster-search{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;border:1px solid rgba(151,177,212,.17);background:rgba(7,14,24,.43);color:#94a7bd}.roster-search span{font-size:18px;line-height:1}.roster-search input{width:100%;min-width:0;background:transparent;border:0;outline:0;color:#edf3fb;font:inherit;font-size:10px}.roster-search:focus-within{border-color:rgba(233,196,119,.5);box-shadow:0 0 0 3px rgba(233,196,119,.07)}.roster-filters{display:flex;gap:5px}.roster-filter{border:1px solid transparent;background:transparent;color:#8498b0;padding:6px 10px;border-radius:8px;font-size:9px;font-weight:850}.roster-filter.active{background:rgba(233,196,119,.1);border-color:rgba(233,196,119,.22);color:#f1d49a}.roster-empty{grid-column:1/-1;padding:15px 8px;text-align:center;color:#8ea0b7;font-size:10px}
+.resume-banner{display:flex;align-items:center;gap:14px;padding:15px 18px;margin:0 0 17px;border:1px solid rgba(111,219,173,.24);border-radius:16px;background:linear-gradient(110deg,rgba(60,135,106,.13),rgba(16,30,41,.92));box-shadow:0 10px 28px rgba(0,0,0,.12)}.resume-symbol{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:rgba(111,219,173,.13);color:#9be8c4;font-size:21px}.resume-copy{display:grid;gap:4px;min-width:0;flex:1}.resume-copy strong{font-size:12px;color:#eaf8f1}.resume-copy span{font-size:10px;color:#9bb9ad}.resume-actions{display:flex;gap:7px;flex-wrap:wrap}
+.privacy-curtain{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 35%,#263750,#080d16 68%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s,visibility .18s}.privacy-curtain.visible{opacity:1;visibility:visible;pointer-events:auto}.privacy-card{width:min(100%,420px);padding:36px 30px;text-align:center;border:1px solid rgba(233,196,119,.24);border-radius:24px;background:linear-gradient(145deg,#19273b,#111a29);box-shadow:0 24px 80px rgba(0,0,0,.42)}.privacy-icon{width:62px;height:62px;display:grid;place-items:center;margin:0 auto 18px;border-radius:19px;background:rgba(233,196,119,.1);color:#f1d49a;font-size:30px}.privacy-card h2{font-size:30px;margin:9px 0}.privacy-card p{color:#aebed0;font-size:13px;line-height:1.6;margin-bottom:21px}.privacy-card small{display:block;margin-top:13px;color:#788ba3;font-size:10px}
+.feature-modal{position:fixed;inset:0;z-index:9000;display:none;place-items:center;padding:20px}.feature-modal.visible{display:grid}.feature-modal-backdrop{position:absolute;inset:0;background:rgba(3,7,13,.78);backdrop-filter:blur(8px)}.feature-modal-card{position:relative;width:min(100%,560px);max-height:min(84vh,760px);overflow:auto;padding:27px;border:1px solid rgba(151,177,212,.22);border-radius:22px;background:linear-gradient(160deg,#1b2a40,#101a29);box-shadow:0 30px 90px rgba(0,0,0,.5)}.feature-modal-card h2{font-size:26px;letter-spacing:-.04em;margin:9px 0 18px}.modal-close{position:absolute;right:15px;top:14px;width:34px;height:34px;border:1px solid rgba(151,177,212,.18);border-radius:10px;background:rgba(255,255,255,.04);color:#d8e2ed;font-size:22px}.modal-footer{display:flex;justify-content:flex-end;margin-top:18px}.guide-current,.guide-reminder{padding:16px;border-radius:14px;background:rgba(8,15,26,.42);border:1px solid rgba(151,177,212,.14);margin-bottom:10px}.guide-current-label{display:block;color:#e9c477;font-size:9px;letter-spacing:.16em;font-weight:900;margin-bottom:7px}.guide-current strong,.guide-reminder strong{font-size:13px;color:#f3f6fb}.guide-current p,.guide-reminder p{font-size:12px;line-height:1.65;color:#b3c1d2;margin:8px 0 0}.guide-reminder{border-color:rgba(233,196,119,.2);background:rgba(233,196,119,.055)}.shortcut-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}.shortcut-list>div{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid rgba(151,177,212,.13);border-radius:10px;background:rgba(8,15,26,.35)}kbd{min-width:29px;padding:5px 7px;text-align:center;border:1px solid rgba(233,196,119,.28);border-radius:7px;background:rgba(233,196,119,.08);color:#f4d99e;font-size:11px;font-weight:900}.shortcut-list span{font-size:10px;color:#c1ccda}.modal-note{font-size:10px;color:#8395ac;margin:14px 0 0}
+.toast{position:fixed;left:50%;bottom:22px;z-index:11000;transform:translate(-50%,12px);opacity:0;pointer-events:none;padding:11px 16px;border-radius:12px;border:1px solid rgba(233,196,119,.22);background:#18273b;color:#f4e4bd;font-size:11px;font-weight:800;box-shadow:0 15px 40px rgba(0,0,0,.35);transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+.theme-aurora{--accent:#8dd6d0;--accent-strong:#b6ece5}.theme-aurora .brand-mark{background:linear-gradient(145deg,#a8eee5,#4b9eab);color:#11242b}.theme-aurora .eyebrow,.theme-aurora .phase-kicker,.theme-aurora .utility-symbol{color:#9be7df}.theme-aurora .btn.primary{background:linear-gradient(135deg,#b7eee6,#5caeb3);border-color:#a5e6df;color:#102326}.theme-aurora .mode.selected,.theme-aurora .target-card.selected{border-color:#8dd6d0;background:rgba(95,181,177,.12)}.theme-aurora .phase-step.current{color:#b6ece5}.theme-aurora .phase-step.current .phase-step-dot{background:linear-gradient(140deg,#b7eee6,#5caeb3);color:#102326}.theme-aurora .phase-progress-current,.theme-aurora .roster-filter.active{color:#b6ece5;border-color:rgba(141,214,208,.25);background:rgba(95,181,177,.09)}
+body.large-type .utility-btn{font-size:12px}body.large-type .roster-search input{font-size:12px}body.large-type .roster-filter{font-size:11px}
+@media(max-width:980px){.utility-bar{align-items:flex-start;flex-direction:column}.utility-actions{justify-content:flex-start}.game-sidebar{grid-template-columns:1fr}.game-sidebar .leave-button,.game-sidebar .sidebar-hint{grid-column:auto}}
+@media(max-width:600px){.shell{padding:12px 12px 28px}.topbar{gap:9px}.utility-bar{padding:9px;margin-bottom:13px}.utility-label{font-size:8px}.utility-actions{gap:4px}.utility-btn{padding:8px 9px;font-size:9px}.utility-btn span:last-child{display:none}.utility-symbol{font-size:15px}.hero{padding:26px 21px}.resume-banner{align-items:flex-start;flex-wrap:wrap}.resume-actions{width:100%}.resume-actions .btn{flex:1}.shortcut-list{grid-template-columns:1fr}.feature-modal-card{padding:23px 17px}.privacy-card{padding:30px 20px}.game-sidebar{display:grid;grid-template-columns:1fr}.roster{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){#app{animation:none}.toast,.privacy-curtain{transition:none}}
+
+</style>
+</head>
+<body>
+<div class="shell">
+  <a class="skip-link" href="#app">Skip to game</a>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">◈</div><div><div class="brand-name">THE HIDDEN CIRCLE</div><div class="brand-sub">A classroom social-deduction game</div></div></div>
+    <div class="header-badges"><div class="pill"><span class="dot"></span> OFFLINE PLAY</div><div class="pill">5–25 PLAYERS</div></div>
+  </header>
+  <nav class="utility-bar" aria-label="Host tools">
+    <div class="utility-left"><span class="utility-label">HOST TOOLS</span><span id="saveStatus" class="save-status"><i></i> Ready</span></div>
+    <div class="utility-actions">
+      <button class="utility-btn" data-extra="fullscreen" title="Toggle fullscreen (F)" aria-label="Toggle fullscreen">⛶ <span>Fullscreen</span></button>
+      <button class="utility-btn" data-extra="privacy" title="Cover the screen (P)" aria-label="Cover screen">◉ <span>Privacy</span></button>
+      <button class="utility-btn" data-extra="sound" title="Toggle sound cues (M)" aria-pressed="false">♫ <span>Sound off</span></button>
+      <button class="utility-btn" data-extra="focus" title="Focus view (V)" aria-pressed="false">▣ <span>Focus</span></button>
+      <button class="utility-btn" data-extra="text" title="Larger text (L)" aria-pressed="false">A＋ <span>Text</span></button>
+      <button class="utility-btn" data-extra="theme" title="Change colour theme">◐ <span>Theme</span></button>
+      <button class="utility-btn" data-extra="help" title="Host guide (H)">? <span>Host guide</span></button>
+      <button class="utility-btn" data-extra="shortcuts" title="Keyboard shortcuts">⌘ <span>Keys</span></button>
+      <button class="utility-btn" data-extra="export" title="Export a game recap">⇩ <span>Export</span></button>
+    </div>
+  </nav>
+  <div id="app"></div>
+  <div id="privacyCurtain" class="privacy-curtain" aria-hidden="true">
+    <div class="privacy-card"><div class="privacy-icon">◉</div><div class="eyebrow">PRIVATE SCREEN</div><h2>Screen covered</h2><p>The game is hidden from view. Reveal it when the room is ready.</p><button class="btn primary" data-extra="privacy-reveal">Reveal screen</button><small>Keyboard shortcut: P</small></div>
+  </div>
+  <div id="featureModal" class="feature-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="featureModalTitle">
+    <div class="feature-modal-backdrop" data-extra="modal-close"></div>
+    <section class="feature-modal-card"><button class="modal-close" data-extra="modal-close" aria-label="Close">×</button><div class="eyebrow">THE HIDDEN CIRCLE · HOST DESK</div><h2 id="featureModalTitle">Host guide</h2><div id="featureModalBody"></div><div class="modal-footer"><button class="btn" data-extra="modal-close">Close</button></div></section>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div class="footer-note">Designed for face-to-face classroom play · One device is used by the moderator and players during private turns</div>
+</div>
+<script>
+(() => {
+  const $ = (s,root=document) => root.querySelector(s);
+  const app = $('#app');
+  const sampleNames = ['Alex','Jordan','Taylor','Sam','Riley','Morgan','Jamie','Casey','Avery','Cameron','Drew','Harper','Kai','Quinn','Reese','Rowan','Skyler','Parker','Emerson','Finley','Logan','Dakota','Sage','Blake','Charlie'];
+  let nextId = 1;
+  const makePlayer = name => ({id:nextId++, name, role:'Council', alive:true});
+  const state = {
+    screen:'setup', players:sampleNames.slice(0,8).map(makePlayer), style:'classic',
+    detective:true, guardian:true, discussionSeconds:60, revealRoles:true,
+    roleOrder:[], roleIndex:0, roleShowing:false,
+    day:1, phase:'nightIntro', nightTarget:null, protectedTarget:null, detectiveTarget:null,
+    selectedTarget:null, ballotOrder:[], ballotIndex:0, ballotChoice:null, votes:[], runoffCandidates:null, runoff:false,
+    timerRemaining:60, timerRunning:false, log:[], winner:null, lastOut:null, lastNightOut:null
+  };
+  let timerHandle = null;
+
+  function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function alive(){return state.players.filter(p=>p.alive)}
+  function findPlayer(id){return state.players.find(p=>p.id===Number(id))}
+  function syndicateCount(){return alive().filter(p=>p.role==='Syndicate').length}
+  function councilCount(){return alive().filter(p=>p.role!=='Syndicate').length}
+  function roleCounts(){
+    const n=state.players.length;
+    const mafia=n<=7?1:n<=12?2:n<=18?3:4;
+    return {syndicate:mafia, detective:state.detective?1:0, guardian:state.guardian?1:0, council:n-mafia-(state.detective?1:0)-(state.guardian?1:0)};
+  }
+  function styleName(){return ({classic:'Classic Council',quick:'Quick Game',expert:'Mastermind'})[state.style]}
+  function addLog(text){state.log.unshift({day:state.day,text});}
+  function stopTimer(){if(timerHandle){clearInterval(timerHandle);timerHandle=null;}state.timerRunning=false;}
+  function resetTimer(){stopTimer();state.timerRemaining=state.discussionSeconds;}
+  function saveNames(){try{localStorage.setItem('hiddenCircleNames',JSON.stringify(state.players.map(p=>p.name)));}catch(e){}}
+  function loadNames(){try{const saved=JSON.parse(localStorage.getItem('hiddenCircleNames')||'null');if(Array.isArray(saved)&&saved.length>=5){state.players=saved.slice(0,25).map(makePlayer);}}catch(e){}}
+  loadNames();
+
+  function renderSetup(){
+    const c=roleCounts();
+    const canStart=state.players.length>=5&&state.players.length<=25&&c.council>=2&&state.players.every(p=>p.name.trim());
+    app.innerHTML=`
+      <section class="hero"><div class="hero-copy"><div class="eyebrow">Secret roles · Big decisions · One winning team</div><h1>Trust is everything.<br>But someone is hiding.</h1><p>A hidden group is working against the Council. Work out who they are before they take control. Talk, question, bluff, investigate and vote — but choose carefully.</p><div class="hero-tags"><span>✦ Social deduction</span><span>◷ 20–40 minutes</span><span>♟ One shared device</span></div></div><div class="hero-emblem" aria-hidden="true"><div class="emblem-ring ring-one"></div><div class="emblem-ring ring-two"></div><div class="emblem-core">◈</div><span class="emblem-star star-a">✦</span><span class="emblem-star star-b">✧</span></div></section>
+      <div class="setup-steps" aria-label="Setup steps"><div class="setup-step active"><span>01</span><div><strong>Game style</strong><small>Choose your pace</small></div></div><div class="setup-step"><span>02</span><div><strong>Players</strong><small>Add the group</small></div></div><div class="setup-step"><span>03</span><div><strong>Settings</strong><small>Review and begin</small></div></div></div>
+      <div class="layout setup-layout">
+        <div>
+          <section class="panel">
+            <div class="panel-head"><div><h2>1. Choose your game style</h2><p class="sub">All styles use the same easy day-and-night rules.</p></div></div>
+            <div class="modes">
+              <button class="mode ${state.style==='classic'?'selected':''}" data-style="classic"><div class="mode-icon">🌙</div><div><strong>Classic Council</strong><span>Balanced first game. Roles are revealed when players leave.</span></div></button>
+              <button class="mode ${state.style==='quick'?'selected':''}" data-style="quick"><div class="mode-icon">⚡</div><div><strong>Quick Game</strong><span>Short discussions and faster decisions.</span></div></button>
+              <button class="mode ${state.style==='expert'?'selected':''}" data-style="expert"><div class="mode-icon">🎭</div><div><strong>Mastermind</strong><span>Hard mode. Secret roles stay hidden when players leave.</span></div></button>
+            </div>
+            <div class="section-gap players-head"><div><h2>2. Add your players</h2><p class="sub">Enter 5–25 names. Seven or more players is best for a balanced game.</p></div><span class="count" id="playerCount">${state.players.length}/25 players</span></div>
+            <div class="player-list" id="playerList">${state.players.map((p,i)=>`<label class="player-row"><span class="player-num">${i+1}</span><input maxlength="24" aria-label="Player ${i+1} name" placeholder="Enter player name" data-name-id="${p.id}" value="${esc(p.name)}"><button class="icon-btn" title="Remove player" data-remove="${p.id}" ${state.players.length<=5?'disabled':''}>×</button></label>`).join('')}</div>
+            <div class="add-row"><button class="btn small" data-action="add-player" ${state.players.length>=25?'disabled':''}>＋ Add player</button><button class="btn small ghost" data-action="fill-25" ${state.players.length>=25?'disabled':''}>＋ Add sample names</button><button class="btn small ghost" data-action="shuffle-players">↻ Shuffle order</button></div>
+            <div class="section-gap"><h2>3. Game settings</h2><p class="sub">Keep the standard settings for your first round, or adjust them.</p></div>
+            <div class="control-row"><div><strong>Detective role</strong><small>Each night, privately checks one player’s team.</small></div><input class="switch" type="checkbox" data-setting="detective" ${state.detective?'checked':''}></div>
+            <div class="control-row"><div><strong>Guardian role</strong><small>Each night, protects one player from being removed.</small></div><input class="switch" type="checkbox" data-setting="guardian" ${state.guardian?'checked':''}></div>
+            <div class="control-row"><div><strong>Discussion time</strong><small>Time for the Council to talk before voting.</small></div><select data-setting="discussionSeconds"><option value="30" ${state.discussionSeconds===30?'selected':''}>30 seconds</option><option value="45" ${state.discussionSeconds===45?'selected':''}>45 seconds</option><option value="60" ${state.discussionSeconds===60?'selected':''}>1 minute</option><option value="90" ${state.discussionSeconds===90?'selected':''}>1 min 30 sec</option><option value="120" ${state.discussionSeconds===120?'selected':''}>2 minutes</option></select></div>
+            <div class="control-row"><div><strong>Reveal roles when out</strong><small>Turn off for an extra challenge. Mastermind starts with this off.</small></div><input class="switch" type="checkbox" data-setting="revealRoles" ${state.revealRoles?'checked':''}></div>
+            <div class="role-preview"><div class="role-chip"><strong>${c.syndicate}</strong><span>Syndicate members</span></div><div class="role-chip"><strong>${c.detective}</strong><span>Detective</span></div><div class="role-chip"><strong>${c.guardian}</strong><span>Guardian</span></div><div class="role-chip"><strong>${c.council}</strong><span>Council members</span></div></div>
+            ${c.council<2?'<p class="sub" style="color:#ff9da4">There must be at least two Council members. Add players or turn off a special role.</p>':''}
+            <div class="start-summary"><div><span class="summary-label">READY TO PLAY</span><strong>${state.players.length} players · ${styleName()}</strong><small>${c.syndicate} Syndicate · ${c.detective+c.guardian} special roles</small></div><span class="summary-check">✓</span></div>
+            <div class="section-gap"><button class="btn primary full start-button" data-action="start-game" ${canStart?'':'disabled'}>Assign secret roles & start game <span>→</span></button><p class="start-footnote">Each player will see their role privately, one at a time.</p></div>
+          </section>
+        </div>
+        <aside>
+          <section class="panel"><div class="panel-head"><div><h2>How to play</h2><p class="sub">Five steps. Same pattern every round.</p></div><span class="pill">EASY RULES</span></div>
+            <div class="rules">
+              <div class="rule"><span class="rule-num">1</span><p><strong>Get a secret role.</strong> The Syndicate know each other. Everyone else must work out who is hiding.</p></div>
+              <div class="rule"><span class="rule-num">2</span><p><strong>Night time.</strong> Everyone closes their eyes. The Syndicate choose one player. Special roles take their turns.</p></div>
+              <div class="rule"><span class="rule-num">3</span><p><strong>Discuss.</strong> The group opens their eyes, shares ideas and decides who seems suspicious.</p></div>
+              <div class="rule"><span class="rule-num">4</span><p><strong>Vote.</strong> Everyone secretly votes for one player to leave the Council.</p></div>
+              <div class="rule"><span class="rule-num">5</span><p><strong>Find the winner.</strong> Council wins by finding every Syndicate member. Syndicate wins when they equal or outnumber the Council.</p></div>
+            </div>
+          </section>
+          <section class="panel"><h2>Know the roles</h2><p class="sub">Only the person receiving the role card should read it.</p>
+            <div class="control-row"><div><strong style="color:#ff929a">◆ Syndicate</strong><small>Choose one Council member to remove each night. Blend in during discussion.</small></div><span>🕶️</span></div>
+            <div class="control-row"><div><strong style="color:#72b7ff">◈ Detective</strong><small>Check one player each night to learn whether they are Syndicate.</small></div><span>🔎</span></div>
+            <div class="control-row"><div><strong style="color:#6fdbad">✚ Guardian</strong><small>Protect one player each night. A protected player cannot be removed by the Syndicate that night.</small></div><span>🛡️</span></div>
+            <div class="control-row"><div><strong>○ Council</strong><small>Listen carefully, discuss, and vote out the Syndicate.</small></div><span>🗳️</span></div>
+          </section>
+          <div class="info-box">💡 <strong>Classroom tip:</strong> Use a teacher or non-playing moderator to run the game. Seven or more players is recommended. During role cards, investigations and secret ballots, do not show the device on the projector. Everyone else should look away or close their eyes.</div>
+        </aside>
+      </div>`;
+  }
+
+  function roleInfo(role){
+    return {
+      Syndicate:{icon:'🕶️',color:'#ff929a',desc:'You are part of the hidden team. At night, work with the other Syndicate members to choose one Council member to remove. During the day, act like a regular Council member.',goal:'Your team wins when Syndicate members equal or outnumber the Council.'},
+      Detective:{icon:'🔎',color:'#72b7ff',desc:'Each night, privately choose one active player to investigate. You will learn whether they are part of the Syndicate. Use what you learn to guide the discussion without revealing too much.',goal:'Help the Council identify every Syndicate member.'},
+      Guardian:{icon:'🛡️',color:'#6fdbad',desc:'Each night, choose one active player to protect. If the Syndicate choose that person, they stay in the game. You may protect yourself.',goal:'Keep the Council in the game and help find the Syndicate.'},
+      Council:{icon:'○',color:'#e6edf7',desc:'You have no special night action. Listen to what everyone says, look for contradictions, share useful ideas and vote carefully.',goal:'Help the Council identify every Syndicate member.'}
+    }[role];
+  }
+  function assignRoles(){
+    const counts=roleCounts();
+    const roles=[];
+    for(let i=0;i<counts.syndicate;i++)roles.push('Syndicate');
+    if(counts.detective)roles.push('Detective');
+    if(counts.guardian)roles.push('Guardian');
+    while(roles.length<state.players.length)roles.push('Council');
+    for(let i=roles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[roles[i],roles[j]]=[roles[j],roles[i]];}
+    state.players.forEach((p,i)=>{p.role=roles[i];p.alive=true;});
+    state.roleOrder=state.players.map(p=>p.id);state.roleIndex=0;state.roleShowing=false;
+  }
+  function startGame(){
+    const names=state.players.map(p=>p.name.trim());
+    if(names.some(n=>!n)){alert('Please enter a name for every player.');return;}
+    if(new Set(names.map(n=>n.toLowerCase())).size!==names.length){if(!confirm('Some players have the same name. Continue anyway?'))return;}
+    const c=roleCounts();if(state.players.length<5||c.council<2){alert('Please add at least 5 players and make sure there are at least 2 Council members.');return;}
+    saveNames();assignRoles();stopTimer();state.screen='roles';state.day=1;state.phase='nightIntro';state.log=[];state.winner=null;state.lastOut=null;state.lastNightOut=null;state.nightTarget=null;state.protectedTarget=null;state.detectiveTarget=null;state.runoff=false;render();
+  }
+  function renderRoleReveal(){
+    const p=findPlayer(state.roleOrder[state.roleIndex]);
+    const r=p?roleInfo(p.role):null;
+    const syndicate=state.players.filter(x=>x.role==='Syndicate'&&x.id!==p?.id).map(x=>x.name);
+    app.innerHTML=`<div class="private-wrap"><div class="private-alert">🔒 PRIVATE SCREEN — DO NOT PROJECT OR LET OTHERS LOOK</div><div class="role-pass-progress"><div class="progress-caption"><span>SECRET ROLE DISTRIBUTION</span><strong>${state.roleIndex+1} <i>/</i> ${state.roleOrder.length}</strong></div><div class="progress-track"><div class="progress-value" style="width:${(state.roleIndex+1)/state.roleOrder.length*100}%"></div></div></div><div class="private-card">
+      <div class="eyebrow">Secret role distribution · ${state.roleIndex+1} of ${state.roleOrder.length}</div>
+      ${!state.roleShowing?`<div style="font-size:42px;margin:18px 0 5px">📩</div><h2>Pass the device to</h2><div class="pass-name">${esc(p.name)}</div><p>Everyone else, look away. When only this player can see the screen, they can reveal their role.</p><button class="btn primary full" data-action="show-role">I'm ${esc(p.name)} — reveal my role</button>`:`<div class="role-display show"><div class="role-emoji">${r.icon}</div><h3 style="color:${r.color}">${p.role==='Syndicate'?'SYNDICATE':p.role.toUpperCase()}</h3><p>${r.desc}</p>${p.role==='Syndicate'?`<p class="ally-list">Your team: ${syndicate.length?syndicate.map(esc).join(', '):'You are the only Syndicate member.'}</p>`:''}<p style="margin-top:13px"><strong>${r.goal}</strong></p></div><div class="action-bar" style="justify-content:center"><button class="btn primary full" data-action="hide-role">Hide role & pass device →</button></div>`}
+    </div><p class="sub" style="text-align:center;margin-top:14px">Players: remember your role. Do not show or tell anyone your secret card unless you choose to during the game.</p></div>`;
+  }
+
+  function startNight(){
+    stopTimer();state.phase='nightIntro';state.nightTarget=null;state.protectedTarget=null;state.detectiveTarget=null;state.selectedTarget=null;state.lastNightOut=null;render();
+  }
+  function nextAfterSyndicate(){
+    const detective=alive().find(p=>p.role==='Detective');
+    state.phase=detective?'detectiveIntro':(alive().some(p=>p.role==='Guardian')?'guardianIntro':'nightResolve');
+    render();
+  }
+  function afterDetective(){
+    state.phase=alive().some(p=>p.role==='Guardian')?'guardianIntro':'nightResolve';state.selectedTarget=null;render();
+  }
+  function resolveNight(){
+    const target=findPlayer(state.nightTarget);
+    if(target&&target.alive&&state.protectedTarget!==target.id){target.alive=false;state.lastNightOut=target;addLog(`${target.name} was removed from the Council during the night.`);}
+    else if(target&&target.alive&&state.protectedTarget===target.id){state.lastNightOut=null;addLog('The Guardian protected the Syndicate target. No one left the Council tonight.');}
+    else {state.lastNightOut=null;addLog('The night passed without anyone being removed.');}
+    const win=checkWinner();if(win){state.winner=win;state.phase='gameOver';}else state.phase='nightResult';render();
+  }
+  function checkWinner(){
+    const s=syndicateCount(),c=councilCount();
+    if(s===0)return 'Council';
+    if(s>=c)return 'Syndicate';
+    return null;
+  }
+  function startDiscussion(){stopTimer();state.timerRemaining=state.discussionSeconds;state.phase='discussion';render();}
+  function toggleTimer(){
+    if(state.timerRunning){stopTimer();render();return;}
+    if(state.timerRemaining<=0)state.timerRemaining=state.discussionSeconds;
+    state.timerRunning=true;
+    timerHandle=setInterval(()=>{
+      state.timerRemaining=Math.max(0,state.timerRemaining-1);
+      updateTimerDisplay();
+      if(state.timerRemaining<=0){stopTimer();const stat=$('#timerStatus');if(stat)stat.textContent='Time is up — discuss no more. Move to the vote.';const control=$('[data-action="timer-toggle"]');if(control)control.textContent='↻ Restart timer';}
+    },1000);
+    render();
+  }
+  function updateTimerDisplay(){
+    const n=$('#timerNumber'),f=$('#timerFill');if(!n||!f)return;
+    const m=Math.floor(state.timerRemaining/60),s=state.timerRemaining%60;n.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    f.style.width=`${Math.max(0,state.timerRemaining/state.discussionSeconds*100)}%`;persistSession();
+  }
+  function beginVoting(runoff=false,candidates=null){
+    stopTimer();state.runoff=runoff;state.runoffCandidates=candidates;state.ballotOrder=alive().map(p=>p.id);state.ballotIndex=0;state.ballotChoice=null;state.votes=[];state.phase='voteIntro';render();
+  }
+  function resolveVotes(){
+    const tally={};state.votes.forEach(v=>{tally[v.target]=(tally[v.target]||0)+1;});
+    const max=Math.max(...Object.values(tally));const leaders=Object.keys(tally).filter(id=>tally[id]===max).map(Number);
+    if(leaders.length>1&&!state.runoff){state.phase='runoffIntro';state.runoffCandidates=leaders;addLog('The vote was tied. A runoff vote will decide.');render();return;}
+    if(leaders.length>1){state.lastOut=null;state.phase='tieResult';addLog('The runoff was still tied. No one was removed from the Council today.');render();return;}
+    const out=findPlayer(leaders[0]);if(out&&out.alive){out.alive=false;state.lastOut=out;addLog(`${out.name} was voted out by the Council.`);}
+    const win=checkWinner();if(win){state.winner=win;state.phase='gameOver';}else state.phase='voteResult';render();
+  }
+  function beginNextNight(){state.day++;startNight();}
+
+  function targetCards(candidates,selected){
+    return `<div class="player-grid">${candidates.map(p=>`<button class="target-card ${Number(selected)===p.id?'selected':''}" data-target="${p.id}"><span class="avatar">${esc(p.name.slice(0,1).toUpperCase())}</span><span style="min-width:0"><strong>${esc(p.name)}</strong><small>Choose player</small></span></button>`).join('')}</div>`;
+  }
+  function phaseStep(){
+    if(state.phase==='gameOver')return 4;
+    if(state.phase==='nightResult')return 1;
+    if(state.phase==='discussion')return 2;
+    if(['voteIntro','runoffIntro','ballotReady','ballotPick'].includes(state.phase))return 3;
+    if(['voteResult','tieResult'].includes(state.phase))return 4;
+    return 0;
+  }
+  function phaseProgressHTML(){
+    const activeStep=phaseStep();
+    const names=['Night','Morning','Discussion','Vote','Results'];
+    return `<div class="phase-progress-wrap"><div class="phase-progress-heading"><div><span class="phase-progress-kicker">GAME FLOW</span><strong>Your round at a glance</strong></div><span class="phase-progress-current">${names[activeStep]}</span></div><div class="phase-progress-track">${names.map((name,i)=>`<div class="phase-step ${i<activeStep?'done':i===activeStep?'current':''}"><span class="phase-step-dot">${i<activeStep?'✓':i+1}</span><span>${name}</span></div>`).join('')}</div></div>`;
+  }
+  function gameStats(){return `<div class="game-heading"><div><div class="eyebrow">THE HIDDEN CIRCLE · ${styleName().toUpperCase()}</div><h2 class="game-heading-title">The game is in progress</h2><p class="game-heading-sub">Keep the room moving one clear step at a time.</p></div><div class="display-tools"><button class="btn small tool-btn" data-action="focus-toggle" aria-pressed="${document.body.classList.contains('focus-mode')?'true':'false'}">${document.body.classList.contains('focus-mode')?'▣ Exit focus':'▣ Focus view'}</button><button class="btn small tool-btn" data-action="text-toggle" aria-pressed="${document.body.classList.contains('large-type')?'true':'false'}">${document.body.classList.contains('large-type')?'A− Text size':'A+ Larger text'}</button></div></div><div class="game-top"><div class="stat"><span>Day</span><strong>${state.day}</strong></div><div class="stat"><span>Still playing</span><strong>${alive().length}<i> / ${state.players.length}</i></strong></div><div class="stat"><span>Out of game</span><strong>${state.players.length-alive().length}</strong></div><div class="stat"><span>Game mode</span><strong class="stat-mode">${styleName()}</strong></div></div>`;}
+  function rosterHTML(){return `<div class="roster-tools"><label class="roster-search"><span aria-hidden="true">⌕</span><input type="search" id="rosterSearch" placeholder="Find a player…" aria-label="Search players" value="${esc(rosterQuery)}"></label><div class="roster-filters" role="group" aria-label="Filter players"><button class="roster-filter ${rosterFilter==='all'?'active':''}" data-extra-filter="all">All</button><button class="roster-filter ${rosterFilter==='active'?'active':''}" data-extra-filter="active">Active</button><button class="roster-filter ${rosterFilter==='out'?'active':''}" data-extra-filter="out">Out</button></div></div><div class="roster" id="rosterList">${state.players.map((p,i)=>`<div class="roster-row ${p.alive?'is-alive':'is-out'}" data-roster-status="${p.alive?'active':'out'}" data-roster-name="${esc(p.name.toLowerCase())}"><span class="roster-person"><span class="roster-avatar">${esc(p.name.slice(0,1).toUpperCase())}</span><span class="roster-name">${esc(p.name)}</span></span><span class="status ${p.alive?'':'out'}"><i></i>${p.alive?'ACTIVE':'OUT'}</span></div>`).join('')}<div class="roster-empty hidden" id="rosterEmpty">No players match this view.</div></div>`;}
+  function gameLayout(content){
+    const logContent=state.log.length?state.log.map(x=>`<div class="log-item"><strong>Day ${x.day} · </strong>${esc(x.text)}</div>`).join(''):'<div class="sub">No events yet. The first night is about to begin.</div>';
+    app.innerHTML=`${gameStats()}${phaseProgressHTML()}<div class="layout game-layout"><section class="panel phase-panel"><div class="phase-content">${content}</div></section><aside class="game-sidebar"><section class="panel roster-panel"><div class="panel-head"><div><h2>Player board</h2><p class="sub">Only shows who is still in the game.</p></div><span class="pill active-pill"><span class="dot"></span>${alive().length} ACTIVE</span></div>${rosterHTML()}<div class="roster-foot"><span class="legend-dot active"></span> In the game <span class="legend-dot out"></span> Out of the game</div></section><details class="panel log-panel"><summary><span><strong>Game log</strong><small>Public events and results</small></span><span class="log-count">${state.log.length} ${state.log.length===1?'event':'events'}</span></summary><div class="log-list">${logContent}</div></details><button class="btn ghost full leave-button" data-action="back-setup">↺ Leave game / return to setup</button><p class="sidebar-hint">Moderator tip: keep this screen visible to the whole room only during public phases.</p></aside></div>`;
+  }
+  function phaseHTML(){
+    const active=alive();
+    switch(state.phase){
+      case 'nightIntro':return `<div class="phase-kicker">Night ${state.day} · Everyone close your eyes</div><h2 class="phase-title">The Council goes quiet.</h2><p class="phase-desc">Everyone should close their eyes and stay silent. The moderator will guide the secret roles one at a time. Do not peek at another player's private turn.</p><div class="phase-banner">🌙 <strong>Moderator:</strong> Make sure everyone has their eyes closed. Start the night when the room is quiet.</div><div class="action-bar"><button class="btn primary" data-action="begin-syndicate">Begin night actions →</button></div>`;
+      case 'syndicate':{
+        const candidates=active.filter(p=>p.role!=='Syndicate');
+        return `<div class="phase-kicker">Night ${state.day} · Secret turn 1</div><h2 class="phase-title">🕶️ The Syndicate chooses</h2><p class="phase-desc">Syndicate members, open your eyes. Silently agree on one active Council member to remove. Everyone else keeps their eyes closed. Moderator, record the agreed choice below.</p>${targetCards(candidates,state.nightTarget)}<div class="action-bar"><button class="btn primary" data-action="lock-syndicate" ${state.nightTarget?'':'disabled'}>Lock choice & continue →</button></div>`;
+      }
+      case 'detectiveIntro':return `<div class="phase-kicker">Night ${state.day} · Secret turn 2</div><h2 class="phase-title">🔎 Detective, wake up.</h2><p class="phase-desc">Everyone else, keep your eyes closed. Pass the device to the Detective. They will privately choose one active player and see whether that person belongs to the Syndicate.</p><div class="private-alert" style="margin-top:20px">PRIVATE ACTION — ONLY THE DETECTIVE SHOULD SEE THE NEXT SCREEN</div><button class="btn primary" data-action="detective-open">I'm the Detective — continue</button>`;
+      case 'detectiveSelect':{
+        const candidates=active.filter(p=>p.role!=='Detective');
+        return `<div class="phase-kicker">Private detective check</div><h2 class="phase-title">Choose someone to investigate.</h2><p class="phase-desc">Tap one active player. The result will appear privately on this device.</p><div class="private-alert">🔒 KEEP THIS SCREEN HIDDEN FROM EVERYONE ELSE</div>${targetCards(candidates,state.selectedTarget)}<button class="btn primary" data-action="detective-check" ${state.selectedTarget?'':'disabled'}>Check player</button>`;
+      }
+      case 'detectiveResult':{
+        const p=findPlayer(state.detectiveTarget);const yes=p?.role==='Syndicate';
+        return `<div class="phase-kicker">Private detective result</div><h2 class="phase-title">Investigation complete.</h2><div class="private-alert">🔒 ONLY THE DETECTIVE SHOULD READ THIS</div><div class="result-box"><div class="big-icon">${yes?'⚠️':'✅'}</div><h3>${esc(p?.name||'Unknown')}</h3><p>${yes?'This player IS a member of the Syndicate.':'This player is NOT a member of the Syndicate.'}</p></div><p class="phase-desc">Remember the result. Do not show the screen. When ready, hide this result and pass the device back to the moderator.</p><button class="btn primary" data-action="detective-done">Hide result & continue →</button>`;
+      }
+      case 'guardianIntro':return `<div class="phase-kicker">Night ${state.day} · Secret turn 3</div><h2 class="phase-title">🛡️ Guardian, wake up.</h2><p class="phase-desc">Everyone else, keep your eyes closed. The Guardian privately chooses one active player to protect tonight. The Guardian may protect themselves.</p><div class="private-alert" style="margin-top:20px">PRIVATE ACTION — ONLY THE GUARDIAN SHOULD SEE THE NEXT SCREEN</div><button class="btn primary" data-action="guardian-open">I'm the Guardian — continue</button>`;
+      case 'guardianSelect':return `<div class="phase-kicker">Private guardian choice</div><h2 class="phase-title">Who will you protect?</h2><p class="phase-desc">Choose one active player. If the Syndicate selected the same person, that player will stay in the game.</p><div class="private-alert">🔒 KEEP THIS SCREEN HIDDEN FROM EVERYONE ELSE</div>${targetCards(active,state.selectedTarget)}<button class="btn primary" data-action="guardian-lock" ${state.selectedTarget?'':'disabled'}>Lock protection & finish night</button>`;
+      case 'nightResolve':return `<div class="phase-kicker">Night ${state.day} · Moderator</div><h2 class="phase-title">The night is ending.</h2><p class="phase-desc">All secret choices are complete. Ask everyone to keep their eyes closed while the moderator resolves the night.</p><div class="phase-banner">The Syndicate chose a target. The Guardian may have protected that player.</div><button class="btn primary" data-action="resolve-night">Reveal the morning →</button>`;
+      case 'nightResult':{
+        const p=state.lastNightOut;
+        return `<div class="phase-kicker">Day ${state.day} · Morning</div><h2 class="phase-title">The Council wakes up.</h2><div class="result-box"><div class="big-icon">${p?'🌘':'🛡️'}</div><h3>${p?`${esc(p.name)} is out of the game.`:'No one was removed last night.'}</h3><p>${p?(state.revealRoles?`Their secret role was ${p.role}.`:'Their secret role remains hidden.'):'The Guardian successfully protected the Syndicate’s target — or no target was selected.'}</p></div><p class="phase-desc">Everyone can open their eyes. The group may now discuss what happened and who they suspect.</p><button class="btn primary" data-action="start-discussion">Start the discussion →</button>`;
+      }
+      case 'discussion':return `<div class="phase-kicker">Day ${state.day} · Open discussion</div><h2 class="phase-title">Talk it out. Find the truth.</h2><p class="phase-desc">Everyone still in the game can speak. Share suspicions, explain your reasoning and listen for contradictions. The moderator controls the timer.</p><div class="timer-box"><div class="timer-meta"><p id="timerStatus">${state.timerRunning?'Discussion timer is running.':state.timerRemaining===0?'Time is up — move to the vote.':'Start the timer when everyone is ready.'}</p><div class="timer-number" id="timerNumber">${String(Math.floor(state.timerRemaining/60)).padStart(2,'0')}:${String(state.timerRemaining%60).padStart(2,'0')}</div><div class="timer-track"><div class="timer-fill" id="timerFill" style="width:${state.timerRemaining/state.discussionSeconds*100}%"></div></div></div><div class="timer-controls"><button class="btn small" data-action="timer-toggle">${state.timerRunning?'Ⅱ Pause':state.timerRemaining===0?'↻ Restart timer':'▶ Start timer'}</button><button class="btn small ghost" data-action="timer-reset">Reset</button></div></div><div class="phase-banner">🗣️ <strong>Discussion tip:</strong> Ask players to explain why they trust someone — or why they do not. Guessing without reasons is less useful.</div><button class="btn primary" data-action="go-vote">Time to vote →</button>`;
+      case 'voteIntro':return `<div class="phase-kicker">Day ${state.day} · ${state.runoff?'Runoff vote':'Secret vote'}</div><h2 class="phase-title">The Council must decide.</h2><p class="phase-desc">Every active player gets one private vote. Pass the device to each voter in turn. Players choose one person they believe is part of the Syndicate. No one may vote for themselves.</p><div class="phase-banner">🗳️ The votes stay secret until everyone has voted. The player with the most votes leaves the Council.</div><button class="btn primary" data-action="start-ballots">Start secret voting →</button>`;
+      case 'runoffIntro':return `<div class="phase-kicker">Day ${state.day} · Runoff vote</div><h2 class="phase-title">It's a tie!</h2><p class="phase-desc">The top players received the same number of votes. Everyone gets one more secret vote, but this time you can only choose between the tied players.</p><div class="phase-banner">A runoff settles the tie. If the runoff is also tied, nobody is voted out today.</div><button class="btn primary" data-action="start-runoff">Start runoff →</button>`;
+      case 'ballotReady':{
+        const voter=findPlayer(state.ballotOrder[state.ballotIndex]);
+        return `<div class="phase-kicker">${state.runoff?'Runoff':'Secret'} ballot · ${state.ballotIndex+1} of ${state.ballotOrder.length}</div><h2 class="phase-title">Pass the device to</h2><div class="pass-name">${esc(voter?.name||'Next voter')}</div><p class="phase-desc">Everyone else, look away. The voter should open their ballot privately, make one choice and then hide the screen.</p><div class="private-alert">🔒 PRIVATE VOTE — DO NOT PROJECT</div><button class="btn primary" data-action="open-ballot">I'm ready to vote</button>`;
+      }
+      case 'ballotPick':{
+        const voter=findPlayer(state.ballotOrder[state.ballotIndex]);
+        const candidates=state.runoffCandidates?state.runoffCandidates.map(findPlayer).filter(p=>p&&p.alive):active;
+        return `<div class="phase-kicker">Private ballot · ${state.ballotIndex+1} of ${state.ballotOrder.length}</div><h2 class="phase-title">Who do you vote for?</h2><p class="phase-desc">Your vote is private. Choose one player. You cannot vote for yourself (${esc(voter?.name)}).</p><div class="private-alert">🔒 ONLY ${esc(voter?.name||'THIS VOTER').toUpperCase()} SHOULD SEE THIS SCREEN</div>${targetCards(candidates.filter(p=>p.id!==voter?.id),state.ballotChoice)}<button class="btn primary" data-action="submit-ballot" ${state.ballotChoice?'':'disabled'}>Confirm my vote</button>`;
+      }
+      case 'voteResult':{
+        const p=state.lastOut;
+        return `<div class="phase-kicker">Day ${state.day} · Vote result</div><h2 class="phase-title">The Council has voted.</h2><div class="result-box"><div class="big-icon">🗳️</div><h3>${p?`${esc(p.name)} leaves the Council.`:'The vote is complete.'}</h3><p>${p?(state.revealRoles?`Their role was ${p.role}.`:'Their role stays secret.'):'No player was selected.'}</p></div><p class="phase-desc">Players who are out become observers. They must not give hints, vote or reveal secret information.</p><button class="btn primary" data-action="next-night">Continue to the next night →</button>`;
+      }
+      case 'tieResult':return `<div class="phase-kicker">Day ${state.day} · No decision</div><h2 class="phase-title">The Council is divided.</h2><div class="result-box"><div class="big-icon">⚖️</div><h3>No one leaves today.</h3><p>The runoff was tied as well. The Council must try again tomorrow.</p></div><button class="btn primary" data-action="next-night">Continue to the next night →</button>`;
+      case 'gameOver':{
+        const win=state.winner;const winnerText=win==='Council'?'THE COUNCIL WINS':'THE SYNDICATE WINS';
+        return `<div class="phase-kicker">Game complete · Day ${state.day}</div><div style="text-align:center;padding:24px 5px"><div style="font-size:56px">${win==='Council'?'🏆':'🕶️'}</div><div class="win-title">${winnerText}</div><p class="phase-desc" style="margin:0 auto">${win==='Council'?'Every Syndicate member has been identified. The Council saved the day!':'The Syndicate now equals or outnumbers the remaining Council. They take control.'}</p></div><div class="result-box"><h3>Final roles</h3><div class="roster" style="text-align:left">${state.players.map(p=>`<div class="roster-row"><span>${esc(p.name)}</span><span class="status" style="color:${p.role==='Syndicate'?'#ff929a':p.role==='Detective'?'#72b7ff':p.role==='Guardian'?'#6fdbad':'#d7e0ec'}">${p.role.toUpperCase()}${p.alive?' · IN':' · OUT'}</span></div>`).join('')}</div></div><div class="action-bar"><button class="btn primary" data-action="play-again">Play again with same players ↻</button><button class="btn" data-action="back-setup">New setup</button></div>`;
+      }
+      default:return '<p>Game phase not found.</p>';
+    }
+  }
+  function renderGame(){gameLayout(phaseHTML());}
+  function render(){if(state.screen==='setup')renderSetup();else if(state.screen==='roles')renderRoleReveal();else renderGame();enhanceRenderedUI();persistSession();observePublicPhase();}
+
+  function handleClick(e){
+    const styleBtn=e.target.closest('[data-style]');if(styleBtn){state.style=styleBtn.dataset.style;if(state.style==='classic'){state.discussionSeconds=60;state.revealRoles=true;}if(state.style==='quick'){state.discussionSeconds=30;state.revealRoles=true;}if(state.style==='expert'){state.discussionSeconds=45;state.revealRoles=false;}render();return;}
+    const rm=e.target.closest('[data-remove]');if(rm){if(state.players.length<=5)return;state.players=state.players.filter(p=>p.id!==Number(rm.dataset.remove));saveNames();render();return;}
+    const target=e.target.closest('[data-target]');if(target){const id=Number(target.dataset.target);if(state.phase==='syndicate')state.nightTarget=id;else if(state.phase==='ballotPick')state.ballotChoice=id;else state.selectedTarget=id;render();return;}
+    const action=e.target.closest('[data-action]')?.dataset.action;if(!action)return;
+    switch(action){
+      case 'focus-toggle':{
+        document.body.classList.toggle('focus-mode');
+        const b=$('[data-action="focus-toggle"]');
+        if(b){const on=document.body.classList.contains('focus-mode');b.textContent=on?'▣ Exit focus':'▣ Focus view';b.setAttribute('aria-pressed',on?'true':'false');}
+        break;
+      }
+      case 'text-toggle':{
+        document.body.classList.toggle('large-type');
+        const b=$('[data-action="text-toggle"]');
+        if(b){const on=document.body.classList.contains('large-type');b.textContent=on?'A− Text size':'A+ Larger text';b.setAttribute('aria-pressed',on?'true':'false');}
+        break;
+      }
+      case 'add-player':if(state.players.length<25){state.players.push(makePlayer(`Player ${state.players.length+1}`));saveNames();render();}break;
+      case 'fill-25':while(state.players.length<25)state.players.push(makePlayer(sampleNames[state.players.length]||`Player ${state.players.length+1}`));saveNames();render();break;
+      case 'shuffle-players':for(let i=state.players.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[state.players[i],state.players[j]]=[state.players[j],state.players[i]];}render();break;
+      case 'start-game':startGame();break;
+      case 'show-role':state.roleShowing=true;render();break;
+      case 'hide-role':state.roleShowing=false;state.roleIndex++;if(state.roleIndex>=state.roleOrder.length){state.screen='game';state.phase='nightIntro';}render();break;
+      case 'begin-syndicate':state.phase=alive().some(p=>p.role==='Syndicate')?'syndicate':(alive().some(p=>p.role==='Detective')?'detectiveIntro':(alive().some(p=>p.role==='Guardian')?'guardianIntro':'nightResolve'));state.selectedTarget=null;render();break;
+      case 'lock-syndicate':if(!state.nightTarget){alert('Choose a target first.');break;}nextAfterSyndicate();break;
+      case 'detective-open':state.phase='detectiveSelect';state.selectedTarget=null;render();break;
+      case 'detective-check':if(!state.selectedTarget)break;state.detectiveTarget=state.selectedTarget;state.phase='detectiveResult';render();break;
+      case 'detective-done':afterDetective();break;
+      case 'guardian-open':state.phase='guardianSelect';state.selectedTarget=null;render();break;
+      case 'guardian-lock':if(!state.selectedTarget)break;state.protectedTarget=state.selectedTarget;state.selectedTarget=null;state.phase='nightResolve';render();break;
+      case 'resolve-night':resolveNight();break;
+      case 'start-discussion':startDiscussion();break;
+      case 'timer-toggle':toggleTimer();break;
+      case 'timer-reset':resetTimer();render();break;
+      case 'go-vote':beginVoting(false,null);break;
+      case 'start-ballots':state.phase='ballotReady';state.ballotIndex=0;render();break;
+      case 'start-runoff':beginVoting(true,state.runoffCandidates);state.phase='ballotReady';render();break;
+      case 'open-ballot':state.phase='ballotPick';state.ballotChoice=null;render();break;
+      case 'submit-ballot':if(!state.ballotChoice)break;state.votes.push({voter:state.ballotOrder[state.ballotIndex],target:state.ballotChoice});state.ballotIndex++;state.ballotChoice=null;if(state.ballotIndex>=state.ballotOrder.length)resolveVotes();else{state.phase='ballotReady';render();}break;
+      case 'next-night':beginNextNight();break;
+      case 'play-again':{
+        const keep=state.players.map(p=>({id:p.id,name:p.name,role:'Council',alive:true}));state.players=keep;state.screen='setup';state.log=[];state.winner=null;render();break;
+      }
+      case 'back-setup':if(confirm('Leave this game and return to setup? The current game will end.')){stopTimer();state.screen='setup';state.players.forEach(p=>{p.alive=true;p.role='Council';});render();}break;
+    }
+  }
+  app.addEventListener('click',handleClick);
+  app.addEventListener('change',e=>{
+    const el=e.target;
+    if(el.dataset.nameId){const p=findPlayer(el.dataset.nameId);if(p){p.name=el.value.trim();saveNames();}const count=$('#playerCount');if(count)count.textContent=`${state.players.length}/25 players`;return;}
+    if(el.dataset.setting){const key=el.dataset.setting;if(el.type==='checkbox')state[key]=el.checked;else state[key]=Number(el.value);if(key==='discussionSeconds')state.timerRemaining=state.discussionSeconds;render();}
+  });
+
+  app.addEventListener('input',e=>{const el=e.target;if(el.dataset.nameId){const p=findPlayer(el.dataset.nameId);if(p)p.name=el.value;}});
+
+  // ── Host tools and experience upgrades (presentation-only) ────────────────
+  const SESSION_KEY='hiddenCircleSessionV2';
+  const PREF_KEY='hiddenCircleExperiencePrefs';
+  let savedSession=null;
+  let rosterFilter='all';
+  let rosterQuery='';
+  let privacyCovered=false;
+  let soundEnabled=false;
+  let currentTheme='midnight';
+  let lastObservedPhase='';
+  let toastHandle=null;
+  let audioContext=null;
+
+  try{
+    const candidate=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+    if(candidate&&candidate.version===2&&candidate.data&&['roles','game'].includes(candidate.data.screen)&&Array.isArray(candidate.data.players)&&candidate.data.players.length>=5)savedSession=candidate;
+  }catch(e){}
+  try{
+    const prefs=JSON.parse(localStorage.getItem(PREF_KEY)||'{}');
+    soundEnabled=!!prefs.sound;
+    currentTheme=prefs.theme==='aurora'?'aurora':'midnight';
+    if(prefs.largeText)document.body.classList.add('large-type');
+    if(prefs.focus)document.body.classList.add('focus-mode');
+  }catch(e){}
+  document.body.classList.toggle('theme-aurora',currentTheme==='aurora');
+
+  function persistPrefs(){
+    try{localStorage.setItem(PREF_KEY,JSON.stringify({sound:soundEnabled,theme:currentTheme,largeText:document.body.classList.contains('large-type'),focus:document.body.classList.contains('focus-mode')}));}catch(e){}
+  }
+  function sessionData(){
+    const keys=['screen','players','style','detective','guardian','discussionSeconds','revealRoles','roleOrder','roleIndex','roleShowing','day','phase','nightTarget','protectedTarget','detectiveTarget','selectedTarget','ballotOrder','ballotIndex','ballotChoice','votes','runoffCandidates','runoff','timerRemaining','log','winner','lastOut','lastNightOut'];
+    const data={};keys.forEach(k=>data[k]=state[k]);data.timerRunning=false;return data;
+  }
+  function persistSession(){
+    if(state.screen==='setup')return;
+    try{
+      localStorage.setItem(SESSION_KEY,JSON.stringify({version:2,savedAt:Date.now(),data:sessionData()}));
+      const badge=$('#saveStatus');if(badge){badge.innerHTML='<i></i> Saved on this device';badge.classList.add('is-saved');}
+    }catch(e){const badge=$('#saveStatus');if(badge){badge.textContent='Save unavailable';badge.classList.add('save-warning');}}
+  }
+  function clearSavedSession(){try{localStorage.removeItem(SESSION_KEY);}catch(e){}savedSession=null;}
+  function restoreSavedSession(){
+    if(!savedSession)return;
+    const data=savedSession.data;
+    Object.keys(data).forEach(k=>{state[k]=data[k];});
+    state.timerRunning=false;
+    state.timerRemaining=Math.max(0,Number(state.timerRemaining)||0);
+    const maxId=Math.max(0,...state.players.map(p=>Number(p.id)||0));nextId=maxId+1;
+    savedSession=null;
+    render();
+    showToast('Your saved game has been restored.');
+  }
+  function enhanceRenderedUI(){
+    if(state.screen==='setup'&&savedSession&&!$('#resumeSessionCard')){
+      const age=Math.max(1,Math.round((Date.now()-(savedSession.savedAt||Date.now()))/60000));
+      const node=document.createElement('section');node.id='resumeSessionCard';node.className='resume-banner';
+      node.innerHTML=`<div class="resume-symbol">↻</div><div class="resume-copy"><strong>A game is saved on this device</strong><span>Last saved about ${age} minute${age===1?'':'s'} ago · Day ${Number(savedSession.data.day)||1}</span></div><div class="resume-actions"><button class="btn primary small" data-extra="resume">Resume game</button><button class="btn ghost small" data-extra="discard-resume">Discard</button></div>`;
+      app.insertBefore(node,app.firstChild);
+    }
+    if(state.screen!=='setup')$('#resumeSessionCard')?.remove();
+    syncUtilityButtons();
+    applyRosterFilters();
+  }
+  function syncUtilityButtons(){
+    const labels={sound:soundEnabled?'♫ Sound on':'♫ Sound off',focus:document.body.classList.contains('focus-mode')?'▣ Focus on':'▣ Focus',text:document.body.classList.contains('large-type')?'A− Text':'A＋ Text',theme:currentTheme==='midnight'?'◐ Midnight':'◑ Aurora',privacy:privacyCovered?'◉ Screen covered':'◉ Privacy'};
+    Object.entries(labels).forEach(([key,label])=>{
+      const b=$(`[data-extra="${key}"]`);if(b){const parts=label.split(' ');b.innerHTML=`<span class="utility-symbol">${parts.shift()}</span><span>${parts.join(' ')}</span>`;}
+    });
+    const save=$('#saveStatus');if(save&&state.screen==='setup') {save.innerHTML='<i></i> Ready';save.classList.remove('is-saved','save-warning');}
+    const focusBtn=$('[data-action="focus-toggle"]');if(focusBtn){const on=document.body.classList.contains('focus-mode');focusBtn.textContent=on?'▣ Exit focus':'▣ Focus view';focusBtn.setAttribute('aria-pressed',on?'true':'false');}
+    const textBtn=$('[data-action="text-toggle"]');if(textBtn){const on=document.body.classList.contains('large-type');textBtn.textContent=on?'A− Text size':'A+ Larger text';textBtn.setAttribute('aria-pressed',on?'true':'false');}
+    const soundBtn=$('[data-extra="sound"]');if(soundBtn)soundBtn.setAttribute('aria-pressed',soundEnabled?'true':'false');
+    const focusTool=$('[data-extra="focus"]');if(focusTool)focusTool.setAttribute('aria-pressed',document.body.classList.contains('focus-mode')?'true':'false');
+    const textTool=$('[data-extra="text"]');if(textTool)textTool.setAttribute('aria-pressed',document.body.classList.contains('large-type')?'true':'false');
+  }
+  function showToast(message){
+    const toast=$('#toast');if(!toast)return;
+    toast.textContent=message;toast.classList.add('show');
+    clearTimeout(toastHandle);toastHandle=setTimeout(()=>toast.classList.remove('show'),2600);
+  }
+  function togglePrivacy(force){
+    privacyCovered=typeof force==='boolean'?force:!privacyCovered;
+    const cover=$('#privacyCurtain');if(cover){cover.classList.toggle('visible',privacyCovered);cover.setAttribute('aria-hidden',privacyCovered?'false':'true');}
+    document.body.classList.toggle('privacy-active',privacyCovered);
+    syncUtilityButtons();
+    if(privacyCovered)showToast('Screen covered. Private information is hidden.');
+  }
+  function toggleClass(className){document.body.classList.toggle(className);persistPrefs();syncUtilityButtons();}
+  function toggleTheme(){currentTheme=currentTheme==='midnight'?'aurora':'midnight';document.body.classList.toggle('theme-aurora',currentTheme==='aurora');persistPrefs();syncUtilityButtons();showToast(`${currentTheme==='aurora'?'Aurora':'Midnight'} theme enabled.`);}
+  async function toggleFullscreen(){
+    try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();}else{await document.exitFullscreen();}}
+    catch(e){showToast('Fullscreen is not available in this browser window.');}
+  }
+  function toggleSound(){soundEnabled=!soundEnabled;persistPrefs();syncUtilityButtons();if(soundEnabled){playCue('soft');showToast('Sound cues enabled.');}else showToast('Sound cues muted.');}
+  function playCue(kind){
+    if(!soundEnabled)return;
+    try{
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+      audioContext=audioContext||new AudioCtx();if(audioContext.state==='suspended')audioContext.resume();
+      const notes=kind==='final'?[660,880,1100]:kind==='public'?[540,720]:[460];
+      notes.forEach((freq,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,audioContext.currentTime+i*.13);gain.gain.exponentialRampToValueAtTime(.055,audioContext.currentTime+i*.13+.025);gain.gain.exponentialRampToValueAtTime(.0001,audioContext.currentTime+i*.13+.16);osc.connect(gain);gain.connect(audioContext.destination);osc.start(audioContext.currentTime+i*.13);osc.stop(audioContext.currentTime+i*.13+.18);});
+    }catch(e){}
+  }
+  function observePublicPhase(){
+    const phase=state.phase;
+    if(phase!==lastObservedPhase){
+      if(['nightResult','discussion','voteIntro','voteResult','tieResult'].includes(phase))playCue('public');
+      if(phase==='gameOver')playCue('final');
+      lastObservedPhase=phase;
+    }
+  }
+  function applyRosterFilters(){
+    const rows=[...document.querySelectorAll('[data-roster-status]')];if(!rows.length)return;
+    const query=(rosterQuery||'').trim().toLowerCase();let shown=0;
+    rows.forEach(row=>{
+      const matchesFilter=rosterFilter==='all'||row.dataset.rosterStatus===rosterFilter;
+      const matchesQuery=!query||(row.dataset.rosterName||'').includes(query);
+      const visible=matchesFilter&&matchesQuery;row.classList.toggle('hidden',!visible);if(visible)shown++;
+    });
+    const empty=$('#rosterEmpty');if(empty)empty.classList.toggle('hidden',shown!==0);
+    document.querySelectorAll('[data-extra-filter]').forEach(b=>b.classList.toggle('active',b.dataset.extraFilter===rosterFilter));
+  }
+  function modalOpen(title,html){
+    const modal=$('#featureModal');if(!modal)return;
+    $('#featureModalTitle').textContent=title;$('#featureModalBody').innerHTML=html;
+    modal.classList.add('visible');modal.setAttribute('aria-hidden','false');
+    setTimeout(()=>$('.modal-close',modal)?.focus(),0);
+  }
+  function modalClose(){const modal=$('#featureModal');if(!modal)return;modal.classList.remove('visible');modal.setAttribute('aria-hidden','true');}
+  function showHostGuide(){
+    const help={
+      nightIntro:['Night begins','Ask everyone to close their eyes. Keep the room quiet, then begin the night actions.'],
+      syndicate:['Syndicate turn','Only Syndicate members should look. Agree silently on one active Council member and let the moderator record the choice.'],
+      detectiveIntro:['Detective turn','Everyone else keeps their eyes closed. Pass the device to the Detective for their private check.'],
+      detectiveSelect:['Private investigation','Only the Detective should view this screen. Select one active player, then read the result privately.'],
+      detectiveResult:['Hide the investigation','The Detective should memorise the result, hide the screen and return the device to the moderator.'],
+      guardianIntro:['Guardian turn','Everyone else keeps their eyes closed. Pass the device to the Guardian for the protection choice.'],
+      guardianSelect:['Private protection','Only the Guardian should view this screen. Choose one active player to protect tonight.'],
+      nightResolve:['Resolve the night','Keep eyes closed while the moderator resolves the secret choices. Then reveal the morning.'],
+      nightResult:['Morning announcement','Invite everyone to open their eyes. Announce the result, then begin the discussion.'],
+      discussion:['Open discussion','The active players discuss suspicions. Start, pause or reset the timer as needed, then move to the vote.'],
+      voteIntro:['Prepare secret voting','Explain that every active player votes once and cannot vote for themselves. Pass the device privately, one voter at a time.'],
+      runoffIntro:['Runoff vote','A tie occurred. Explain that only the tied candidates can be selected in this extra vote.'],
+      ballotReady:['Pass the device','Call the named voter forward or pass the device to them. Everyone else should look away before the ballot opens.'],
+      ballotPick:['Private ballot','Only the named voter should see the screen. They select one eligible player and confirm their choice.'],
+      voteResult:['Vote result','Announce who leaves the Council and reveal their role only if the current game setting allows it.'],
+      tieResult:['No one leaves','The runoff was tied too, so no one leaves the Council today. Continue to the next night.'],
+      gameOver:['Game complete','Celebrate the winning team. The final roles are shown on the game screen. Export a recap if you want a record.']
+    };
+    const item=help[state.phase]||['Host guide','Follow the on-screen instruction for the current phase.'];
+    modalOpen('Host guide',`<div class="guide-current"><span class="guide-current-label">CURRENT PHASE</span><strong>${esc(item[0])}</strong><p>${esc(item[1])}</p></div><div class="guide-reminder"><strong>Classroom privacy reminder</strong><p>Do not project role cards, investigations, or individual ballots. Use the Privacy button or press P to cover the screen while passing the device.</p></div>`);
+  }
+  function showShortcuts(){
+    modalOpen('Keyboard shortcuts',`<div class="shortcut-list"><div><kbd>F</kbd><span>Toggle fullscreen</span></div><div><kbd>P</kbd><span>Cover / reveal the screen</span></div><div><kbd>M</kbd><span>Toggle sound cues</span></div><div><kbd>V</kbd><span>Toggle Focus View</span></div><div><kbd>L</kbd><span>Toggle larger text</span></div><div><kbd>H</kbd><span>Open the host guide</span></div><div><kbd>?</kbd><span>Show this shortcut list</span></div><div><kbd>Esc</kbd><span>Close a dialog or privacy cover</span></div></div><p class="modal-note">Shortcuts are paused while you are typing in a text field.</p>`);
+  }
+  function exportRecap(){
+    const lines=['THE HIDDEN CIRCLE — GAME RECAP','================================',`Date: ${new Date().toLocaleString()}`,`Game style: ${styleName()}`,`Players: ${state.players.length}`,`Final day: ${state.day}`,`Winner: ${state.winner||'Game in progress'}`,`Detective: ${state.detective?'Enabled':'Disabled'}`,`Guardian: ${state.guardian?'Enabled':'Disabled'}`,`Discussion timer: ${state.discussionSeconds} seconds`,'','PLAYER ROLES','------------',...state.players.map(p=>`${p.name} — ${p.role} — ${p.alive?'Still in':'Out'}`),'','GAME HISTORY','------------',...(state.log.length?state.log.slice().reverse().map(x=>`Day ${x.day}: ${x.text}`):['No public events recorded yet.'])];
+    const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`hidden-circle-recap-${new Date().toISOString().slice(0,10)}.txt`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);showToast('Game recap exported as a text file.');
+  }
+  function featureClick(e){
+    const btn=e.target.closest('[data-extra]');if(!btn)return;
+    const action=btn.dataset.extra;
+    switch(action){
+      case 'fullscreen':toggleFullscreen();break;
+      case 'privacy':togglePrivacy();break;
+      case 'privacy-reveal':togglePrivacy(false);break;
+      case 'sound':toggleSound();break;
+      case 'focus':toggleClass('focus-mode');break;
+      case 'text':toggleClass('large-type');break;
+      case 'theme':toggleTheme();break;
+      case 'help':showHostGuide();break;
+      case 'shortcuts':showShortcuts();break;
+      case 'export':if(state.screen==='setup'){showToast('Start a game before exporting its recap.');}else{exportRecap();}break;
+      case 'modal-close':modalClose();break;
+      case 'resume':restoreSavedSession();break;
+      case 'discard-resume':clearSavedSession();$('#resumeSessionCard')?.remove();showToast('Saved game discarded.');break;
+      default:break;
+    }
+  }
+  document.addEventListener('click',featureClick);
+  document.addEventListener('click',e=>{
+    const filter=e.target.closest('[data-extra-filter]');if(filter){rosterFilter=filter.dataset.extraFilter;applyRosterFilters();}
+  });
+  document.addEventListener('input',e=>{if(e.target.id==='rosterSearch'){rosterQuery=e.target.value;applyRosterFilters();}});
+  document.addEventListener('keydown',e=>{
+    const typing=e.target&&(e.target.matches('input,textarea,select')||e.target.isContentEditable);
+    if(e.key==='Escape'){
+      if($('#featureModal')?.classList.contains('visible')){modalClose();return;}
+      if(privacyCovered){togglePrivacy(false);return;}
+    }
+    if(typing||e.ctrlKey||e.metaKey||e.altKey)return;
+    const key=e.key.toLowerCase();
+    if(key==='f'){e.preventDefault();toggleFullscreen();}
+    else if(key==='p'){e.preventDefault();togglePrivacy();}
+    else if(key==='m'){e.preventDefault();toggleSound();}
+    else if(key==='v'){e.preventDefault();toggleClass('focus-mode');}
+    else if(key==='l'){e.preventDefault();toggleClass('large-type');}
+    else if(key==='h'){e.preventDefault();showHostGuide();}
+    else if(key==='?'){e.preventDefault();showShortcuts();}
+  });
+  document.addEventListener('fullscreenchange',()=>{
+    const b=$('[data-extra="fullscreen"]');if(b)b.innerHTML=document.fullscreenElement?'<span class="utility-symbol">⛶</span><span>Exit full</span>':'<span class="utility-symbol">⛶</span><span>Fullscreen</span>';
+    syncUtilityButtons();
+  });
+  app.addEventListener('change',e=>{if(e.target.dataset.nameId)persistSession();});
+  app.addEventListener('click',e=>{
+    const action=e.target.closest('[data-action]')?.dataset.action;
+    if(action==='focus-toggle'||action==='text-toggle'){persistPrefs();syncUtilityButtons();}
+    if(action==='play-again'||action==='back-setup'){
+      if(state.screen==='setup'){clearSavedSession();render();}
+    }
+    if(action==='start-game'&&state.screen==='roles')savedSession=null;
+  });
+  window.addEventListener('beforeunload',persistSession);
+  render();
+})();
+</script>
+</body>
+</html>
